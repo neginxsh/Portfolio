@@ -1,0 +1,443 @@
+/* -------------------------------------------------------------------------
+   Design tokens
+   Near-identical to the work.ryo.lu reference: system font stack, near-black
+   text, muted gray secondary text, soft card backgrounds, minimal borders.
+   ---------------------------------------------------------------------- */
+:root {
+	--font-sans: ui-sans-serif, -apple-system, "system-ui", "Segoe UI Variable Display",
+		"Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+
+	--color-bg: #ffffff;
+	--color-text: #191919;
+	--color-text-muted: #787774;
+	--color-text-faint: #9b9a97;
+	--color-border: rgba(55, 53, 47, 0.09);
+	--color-card-bg: #f7f6f3;
+	--color-pill-bg: #efeeec;
+	--color-pill-bg-active: #191919;
+	--color-pill-text-active: #ffffff;
+
+	--radius-sm: 6px;
+	--radius-md: 10px;
+	--content-width: 900px;
+
+	color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--color-bg: #191919;
+		--color-text: #f2f1ee;
+		--color-text-muted: #9b9a97;
+		--color-text-faint: #6f6e69;
+		--color-border: rgba(255, 255, 255, 0.09);
+		--color-card-bg: #232323;
+		--color-pill-bg: #2a2a2a;
+		--color-pill-bg-active: #f2f1ee;
+		--color-pill-text-active: #191919;
+
+		color-scheme: dark;
+	}
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	font-family: var(--font-sans);
+	background: var(--color-bg);
+	color: var(--color-text);
+	-webkit-font-smoothing: antialiased;
+	line-height: 1.5;
+}
+
+a {
+	color: inherit;
+}
+
+.wrap {
+	max-width: var(--content-width);
+	margin: 0 auto;
+	padding: 64px 24px 96px;
+}
+
+@media (max-width: 640px) {
+	.wrap {
+		padding: 40px 20px 64px;
+	}
+}
+
+/* -------------------------------------------------------------------------
+   Header
+   ---------------------------------------------------------------------- */
+.header {
+	margin-bottom: 32px;
+}
+
+.header .role {
+	font-size: 15px;
+	font-weight: 600;
+	color: var(--color-text-muted);
+	margin: 0 0 4px;
+	letter-spacing: 0.01em;
+}
+
+.header h1 {
+	font-size: 32px;
+	font-weight: 700;
+	line-height: 1.25;
+	margin: 0 0 10px;
+	letter-spacing: -0.01em;
+}
+
+.header .tagline {
+	font-size: 16px;
+	color: var(--color-text-muted);
+	margin: 0 0 12px;
+	max-width: 560px;
+}
+
+.header .links {
+	font-size: 15px;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 10px;
+}
+
+.header .links a {
+	color: var(--color-text-muted);
+	text-decoration: underline;
+	text-decoration-color: var(--color-border);
+	text-underline-offset: 3px;
+	transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+
+.header .links a:hover {
+	color: var(--color-text);
+	text-decoration-color: currentColor;
+}
+
+.header .links .sep {
+	color: var(--color-text-faint);
+}
+
+/* -------------------------------------------------------------------------
+   Toolbar: view tabs + filter/sort/search
+   ---------------------------------------------------------------------- */
+.toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding-bottom: 12px;
+	margin-bottom: 8px;
+	border-bottom: 1px solid var(--color-border);
+}
+
+.tabs {
+	display: flex;
+	gap: 4px;
+}
+
+.tab {
+	appearance: none;
+	border: none;
+	background: transparent;
+	font-family: inherit;
+	font-size: 14px;
+	font-weight: 500;
+	color: var(--color-text-muted);
+	padding: 6px 12px;
+	border-radius: var(--radius-sm);
+	cursor: pointer;
+	transition: background 0.15s ease, color 0.15s ease;
+}
+
+.tab:hover {
+	background: var(--color-pill-bg);
+	color: var(--color-text);
+}
+
+.tab[aria-pressed="true"] {
+	background: var(--color-pill-bg-active);
+	color: var(--color-pill-text-active);
+}
+
+.tools {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	position: relative;
+}
+
+.icon-btn {
+	appearance: none;
+	border: none;
+	background: transparent;
+	width: 28px;
+	height: 28px;
+	display: grid;
+	place-items: center;
+	border-radius: var(--radius-sm);
+	color: var(--color-text-muted);
+	cursor: pointer;
+	transition: background 0.15s ease, color 0.15s ease;
+}
+
+.icon-btn:hover,
+.icon-btn[aria-pressed="true"] {
+	background: var(--color-pill-bg);
+	color: var(--color-text);
+}
+
+.icon-btn svg {
+	width: 16px;
+	height: 16px;
+}
+
+.search-input {
+	width: 0;
+	opacity: 0;
+	padding: 0;
+	border: none;
+	background: transparent;
+	font-family: inherit;
+	font-size: 14px;
+	color: var(--color-text);
+	transition: width 0.2s ease, opacity 0.15s ease, padding 0.2s ease;
+}
+
+.search-input.open {
+	width: 160px;
+	opacity: 1;
+	padding: 6px 8px;
+	background: var(--color-pill-bg);
+	border-radius: var(--radius-sm);
+	margin-right: 2px;
+}
+
+.search-input:focus {
+	outline: none;
+}
+
+/* Tag filter row */
+.tag-row {
+	display: none;
+	flex-wrap: wrap;
+	gap: 6px;
+	padding: 12px 0 4px;
+}
+
+.tag-row.open {
+	display: flex;
+}
+
+.tag-pill {
+	appearance: none;
+	border: 1px solid var(--color-border);
+	background: transparent;
+	font-family: inherit;
+	font-size: 13px;
+	color: var(--color-text-muted);
+	padding: 4px 10px;
+	border-radius: 999px;
+	cursor: pointer;
+	transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.tag-pill:hover {
+	color: var(--color-text);
+}
+
+.tag-pill[aria-pressed="true"] {
+	background: var(--color-pill-bg-active);
+	color: var(--color-pill-text-active);
+	border-color: var(--color-pill-bg-active);
+}
+
+/* -------------------------------------------------------------------------
+   Grid view
+   ---------------------------------------------------------------------- */
+.grid {
+	margin-top: 20px;
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+	gap: 20px;
+}
+
+.card {
+	display: block;
+	text-decoration: none;
+	color: inherit;
+	border-radius: var(--radius-md);
+	overflow: hidden;
+	border: 1px solid var(--color-border);
+	background: var(--color-bg);
+	opacity: 0;
+	transform: translateY(6px);
+	animation: card-in 0.4s ease forwards;
+	transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+
+.card:hover {
+	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+	transform: translateY(-2px);
+	border-color: rgba(55, 53, 47, 0.16);
+}
+
+@media (prefers-color-scheme: dark) {
+	.card:hover {
+		box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+	}
+}
+
+@keyframes card-in {
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.card-cover {
+	aspect-ratio: 16 / 10;
+	display: grid;
+	place-items: center;
+	position: relative;
+	overflow: hidden;
+}
+
+.card-cover .glyph {
+	font-size: 42px;
+	font-weight: 700;
+	color: rgba(25, 25, 25, 0.22);
+	transition: transform 0.3s ease;
+}
+
+.card:hover .card-cover .glyph {
+	transform: scale(1.06);
+}
+
+.card-body {
+	padding: 12px 14px 14px;
+	border-top: 1px solid var(--color-border);
+}
+
+.card-title-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 14px;
+	font-weight: 500;
+}
+
+.card-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 2px;
+	flex: none;
+}
+
+.card-meta {
+	margin: 4px 0 0;
+	font-size: 12.5px;
+	color: var(--color-text-faint);
+}
+
+.grid[hidden],
+.timeline[hidden] {
+	display: none;
+}
+
+.empty-state {
+	padding: 48px 0;
+	text-align: center;
+	color: var(--color-text-faint);
+	font-size: 14px;
+}
+
+/* -------------------------------------------------------------------------
+   Timeline view
+   ---------------------------------------------------------------------- */
+.timeline {
+	margin-top: 8px;
+}
+
+.timeline-group {
+	padding: 20px 0;
+	border-bottom: 1px solid var(--color-border);
+	display: grid;
+	grid-template-columns: 72px 1fr;
+	gap: 16px;
+}
+
+.timeline-group:first-of-type {
+	padding-top: 12px;
+}
+
+.timeline-year {
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--color-text-faint);
+	padding-top: 2px;
+}
+
+.timeline-items {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.timeline-item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	text-decoration: none;
+	color: inherit;
+	padding: 8px 10px;
+	margin: 0 -10px;
+	border-radius: var(--radius-sm);
+	transition: background 0.15s ease;
+}
+
+.timeline-item:hover {
+	background: var(--color-pill-bg);
+}
+
+.timeline-item .card-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 2px;
+}
+
+.timeline-item .t-title {
+	font-size: 14.5px;
+	font-weight: 500;
+}
+
+.timeline-item .t-cat {
+	font-size: 13px;
+	color: var(--color-text-faint);
+	margin-left: auto;
+}
+
+/* -------------------------------------------------------------------------
+   Footer
+   ---------------------------------------------------------------------- */
+.footer {
+	margin-top: 64px;
+	padding-top: 20px;
+	border-top: 1px solid var(--color-border);
+	font-size: 13px;
+	color: var(--color-text-faint);
+	display: flex;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 8px;
+}

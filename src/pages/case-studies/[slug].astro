@@ -1,0 +1,51 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { projects } from "../../data/projects.ts";
+
+export function getStaticPaths() {
+	return projects.map((project) => ({
+		params: { slug: project.slug },
+		props: { project },
+	}));
+}
+
+const { project } = Astro.props;
+---
+
+<Layout title={`${project.title} — Negin Sheibani`} description={project.summary}>
+	<div class="wrap">
+		<a class="back-link" href="/">← Back</a>
+
+		<header class="header" style="margin-top: 24px;">
+			<p class="role">{project.category} · {project.year}</p>
+			<h1>{project.title}</h1>
+			<p class="tagline">{project.summary}</p>
+		</header>
+
+		<div class="stub-cover" style={`background:${project.color}`}>
+			<span>Case study coming soon</span>
+		</div>
+	</div>
+
+	<style>
+		.back-link {
+			font-size: 14px;
+			color: var(--color-text-muted);
+			text-decoration: none;
+		}
+		.back-link:hover {
+			color: var(--color-text);
+		}
+		.stub-cover {
+			margin-top: 32px;
+			border-radius: var(--radius-md);
+			border: 1px solid var(--color-border);
+			aspect-ratio: 16 / 9;
+			display: grid;
+			place-items: center;
+			color: rgba(25, 25, 25, 0.35);
+			font-size: 15px;
+			font-weight: 500;
+		}
+	</style>
+</Layout>

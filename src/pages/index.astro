@@ -1,0 +1,237 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { projects } from "../data/projects.ts";
+
+// Group projects by year, newest year first — powers the Timeline view.
+const years = [...new Set(projects.map((p) => p.year))].sort((a, b) => b - a);
+const byYear = years.map((year) => ({
+	year,
+	items: projects.filter((p) => p.year === year),
+}));
+
+// Distinct categories — powers the tag filter row.
+const categories = [...new Set(projects.map((p) => p.category))];
+---
+
+<Layout title="Negin Sheibani — Product Designer">
+	<div class="wrap">
+		<header class="header">
+			<p class="role">Product Designer</p>
+			<h1>Negin Sheibani</h1>
+			<p class="tagline">tagline</p>
+			<p class="links">
+				<a href="mailto:neginxsheibani@gmail.com">neginxsheibani@gmail.com</a>
+				<span class="sep">·</span>
+				<a href="https://www.linkedin.com/in/negin-ssheibani" target="_blank" rel="noopener noreferrer">
+					LinkedIn
+				</a>
+			</p>
+		</header>
+
+		<div class="toolbar">
+			<div class="tabs" role="tablist" aria-label="View">
+				<button class="tab" data-view="newest" aria-pressed="true">Newest</button>
+				<button class="tab" data-view="timeline" aria-pressed="false">Timeline</button>
+				<button class="tab" data-view="all" aria-pressed="false">All</button>
+			</div>
+			<div class="tools">
+				<button class="icon-btn" id="filter-btn" aria-pressed="false" aria-label="Filter by category" title="Filter">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<polygon points="4 4 20 4 14 12.5 14 19 10 21 10 12.5 4 4"></polygon>
+					</svg>
+				</button>
+				<button class="icon-btn" id="sort-btn" aria-pressed="false" aria-label="Toggle sort order" title="Sort">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M8 3v18M8 3 4 7M8 3l4 4M16 21V3M16 21l4-4M16 21l-4-4"></path>
+					</svg>
+				</button>
+				<input class="search-input" id="search-input" type="text" placeholder="Search…" aria-label="Search case studies" />
+				<button class="icon-btn" id="search-btn" aria-pressed="false" aria-label="Search" title="Search">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<circle cx="11" cy="11" r="7"></circle>
+						<path d="m21 21-4.3-4.3"></path>
+					</svg>
+				</button>
+			</div>
+		</div>
+
+		<div class="tag-row" id="tag-row">
+			<button class="tag-pill" data-tag="all" aria-pressed="true">All categories</button>
+			{categories.map((c) => (
+				<button class="tag-pill" data-tag={c} aria-pressed="false">{c}</button>
+			))}
+		</div>
+
+		<!-- Grid view (Newest / All) -->
+		<div class="grid" id="grid-view">
+			{projects.map((p) => (
+				<a
+					class="card"
+					href={`/case-studies/${p.slug}/`}
+					data-title={p.title.toLowerCase()}
+					data-category={p.category}
+					data-year={p.year}
+				>
+					<div class="card-cover" style={`background:${p.color}`}>
+						<span class="glyph">{p.title.charAt(p.title.length - 1)}</span>
+					</div>
+					<div class="card-body">
+						<div class="card-title-row">
+							<span class="card-dot" style={`background:${p.color}`}></span>
+							{p.title}
+						</div>
+						<p class="card-meta">{p.category} · {p.year}</p>
+					</div>
+				</a>
+			))}
+		</div>
+
+		<!-- Timeline view -->
+		<div class="timeline" id="timeline-view" hidden>
+			{byYear.map(({ year, items }) => (
+				<div class="timeline-group" data-year={year}>
+					<div class="timeline-year">{year}</div>
+					<div class="timeline-items">
+						{items.map((p) => (
+							<a
+								class="timeline-item"
+								href={`/case-studies/${p.slug}/`}
+								data-title={p.title.toLowerCase()}
+								data-category={p.category}
+								data-year={p.year}
+							>
+								<span class="card-dot" style={`background:${p.color}`}></span>
+								<span class="t-title">{p.title}</span>
+								<span class="t-cat">{p.category}</span>
+							</a>
+						))}
+					</div>
+				</div>
+			))}
+		</div>
+
+		<p class="empty-state" id="empty-state" hidden>No case studies match your search.</p>
+
+		<footer class="footer">
+			<span>&copy; {new Date().getFullYear()} Negin Sheibani</span>
+			<span>Built with Astro</span>
+		</footer>
+	</div>
+
+	<script>
+		const gridView = document.getElementById("grid-view") as HTMLElement;
+		const timelineView = document.getElementById("timeline-view") as HTMLElement;
+		const emptyState = document.getElementById("empty-state") as HTMLElement;
+		const tabs = Array.from(document.querySelectorAll<HTMLButtonElement>(".tab"));
+		const filterBtn = document.getElementById("filter-btn") as HTMLButtonElement;
+		const sortBtn = document.getElementById("sort-btn") as HTMLButtonElement;
+		const searchBtn = document.getElementById("search-btn") as HTMLButtonElement;
+		const searchInput = document.getElementById("search-input") as HTMLInputElement;
+		const tagRow = document.getElementById("tag-row") as HTMLElement;
+		const tagPills = Array.from(document.querySelectorAll<HTMLButtonElement>(".tag-pill"));
+
+		let sortDesc = true; // newest first by default
+		let activeTag = "all";
+		let query = "";
+
+		// ---- View tabs ----------------------------------------------------
+		function setView(view: string) {
+			tabs.forEach((t) => t.setAttribute("aria-pressed", String(t.dataset.view === view)));
+			if (view === "timeline") {
+				gridView.hidden = true;
+				timelineView.hidden = false;
+			} else {
+				gridView.hidden = false;
+				timelineView.hidden = true;
+			}
+			applyFilters();
+		}
+
+		tabs.forEach((tab) => tab.addEventListener("click", () => setView(tab.dataset.view!)));
+
+		// ---- Sort (by year) -------------------------------------------------
+		sortBtn.addEventListener("click", () => {
+			sortDesc = !sortDesc;
+			sortBtn.setAttribute("aria-pressed", String(!sortDesc));
+
+			const cards = Array.from(gridView.querySelectorAll<HTMLElement>(".card"));
+			cards
+				.sort((a, b) => {
+					const ya = Number(a.dataset.year);
+					const yb = Number(b.dataset.year);
+					return sortDesc ? yb - ya : ya - yb;
+				})
+				.forEach((card) => gridView.appendChild(card));
+
+			const groups = Array.from(timelineView.querySelectorAll<HTMLElement>(".timeline-group"));
+			groups
+				.sort((a, b) => {
+					const ya = Number(a.dataset.year);
+					const yb = Number(b.dataset.year);
+					return sortDesc ? yb - ya : ya - yb;
+				})
+				.forEach((group) => timelineView.appendChild(group));
+		});
+
+		// ---- Filter by category ---------------------------------------------
+		filterBtn.addEventListener("click", () => {
+			const open = tagRow.classList.toggle("open");
+			filterBtn.setAttribute("aria-pressed", String(open));
+		});
+
+		tagPills.forEach((pill) => {
+			pill.addEventListener("click", () => {
+				activeTag = pill.dataset.tag!;
+				tagPills.forEach((p) => p.setAttribute("aria-pressed", String(p === pill)));
+				applyFilters();
+			});
+		});
+
+		// ---- Search -----------------------------------------------------------
+		searchBtn.addEventListener("click", () => {
+			const open = searchInput.classList.toggle("open");
+			searchBtn.setAttribute("aria-pressed", String(open));
+			if (open) searchInput.focus();
+			else {
+				searchInput.value = "";
+				query = "";
+				applyFilters();
+			}
+		});
+
+		searchInput.addEventListener("input", () => {
+			query = searchInput.value.trim().toLowerCase();
+			applyFilters();
+		});
+
+		// ---- Combined filter pass ---------------------------------------------
+		function applyFilters() {
+			let anyVisible = false;
+
+			// Grid cards
+			document.querySelectorAll<HTMLElement>("#grid-view .card").forEach((card) => {
+				const matches =
+					(activeTag === "all" || card.dataset.category === activeTag) &&
+					(query === "" || card.dataset.title!.includes(query));
+				card.style.display = matches ? "" : "none";
+				if (matches) anyVisible = true;
+			});
+
+			// Timeline items + their year groups
+			document.querySelectorAll<HTMLElement>(".timeline-group").forEach((group) => {
+				let groupHasVisible = false;
+				group.querySelectorAll<HTMLElement>(".timeline-item").forEach((item) => {
+					const matches =
+						(activeTag === "all" || item.dataset.category === activeTag) &&
+						(query === "" || item.dataset.title!.includes(query));
+					item.style.display = matches ? "" : "none";
+					if (matches) groupHasVisible = true;
+				});
+				group.style.display = groupHasVisible ? "" : "none";
+				if (groupHasVisible) anyVisible = true;
+			});
+
+			emptyState.hidden = anyVisible;
+		}
+	</script>
+</Layout>
