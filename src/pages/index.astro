@@ -1,5 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import FishLogo from "../components/FishLogo.astro";
 import { projects } from "../data/projects.ts";
 
 // Group projects by year, newest year first — powers the Timeline view.
@@ -17,7 +18,10 @@ const categories = [...new Set(projects.map((p) => p.category))];
 	<div class="wrap">
 		<header class="header">
 			<p class="role">Product Designer</p>
-			<h1>Negin Sheibani</h1>
+			<div class="name-row">
+				<FishLogo class="fish-logo" />
+				<h1>Negin Sheibani</h1>
+			</div>
 			<p class="tagline">tagline</p>
 			<p class="links">
 				<a href="mailto:neginxsheibani@gmail.com">neginxsheibani@gmail.com</a>
