@@ -83,7 +83,13 @@ a {
    Sits flush in the top-left corner, aligned with the grid's left edge.
    ---------------------------------------------------------------------- */
 .header {
-	margin-bottom: 20px;
+	margin-bottom: 32px;
+}
+
+.section-divider {
+	border: none;
+	border-top: 1px solid var(--color-border);
+	margin: 0 0 32px;
 }
 
 .header .role {
