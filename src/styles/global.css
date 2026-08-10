@@ -19,7 +19,9 @@
 
 	--radius-sm: 6px;
 	--radius-md: 10px;
-	--content-width: 900px;
+	/* Full-bleed content: a fixed side margin rather than a narrow centered
+	   column, so the page uses the whole browser width (ref: joannani.com). */
+	--content-margin: 32px;
 
 	color-scheme: light;
 }
@@ -63,14 +65,14 @@ a {
 }
 
 .wrap {
-	max-width: var(--content-width);
-	margin: 0 auto;
-	padding: 64px 24px 96px;
+	padding: 64px var(--content-margin) 96px;
 }
 
 @media (max-width: 640px) {
 	.wrap {
-		padding: 40px 20px 64px;
+		--content-margin: 20px;
+		padding-top: 40px;
+		padding-bottom: 64px;
 	}
 }
 
