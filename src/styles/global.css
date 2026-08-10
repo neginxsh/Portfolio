@@ -24,6 +24,9 @@
 	/* Full-bleed content: a fixed side margin rather than a narrow centered
 	   column, so the page uses the whole browser width (ref: joannani.com). */
 	--content-margin: 32px;
+	/* Rough fallback for first paint before the sync script measures the
+	   real footer height (see index.astro) — avoids a layout jump. */
+	--footer-height: 420px;
 
 	color-scheme: light;
 }
@@ -76,6 +79,33 @@ a {
 		padding-top: 24px;
 		padding-bottom: 64px;
 	}
+}
+
+/* -------------------------------------------------------------------------
+   Reveal footer (ref: skizophonic.com)
+   .page-cover is an opaque layer sitting above .reveal-footer, which is
+   fixed to the bottom of the viewport and out of normal document flow
+   (contributes no scroll height itself). .footer-spacer reserves exactly
+   the footer's height in scroll room at the end of .page-cover, so as you
+   scroll through that spacer the fixed footer shows through underneath —
+   it reads as the page lifting away rather than a footer sliding up.
+   ---------------------------------------------------------------------- */
+.page-cover {
+	position: relative;
+	z-index: 1;
+	background: var(--color-bg);
+}
+
+.footer-spacer {
+	height: var(--footer-height);
+}
+
+.reveal-footer {
+	position: fixed;
+	inset-inline: 0;
+	bottom: 0;
+	z-index: 0;
+	background: var(--color-bg);
 }
 
 /* -------------------------------------------------------------------------
