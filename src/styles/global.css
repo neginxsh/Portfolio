@@ -96,10 +96,10 @@ a {
 
 .header h1 {
 	font-family: var(--font-serif-alt);
-	font-size: 40px;
+	font-size: 28px;
 	font-weight: 700;
 	line-height: 1.15;
-	margin: 0 0 10px;
+	margin: 0;
 	letter-spacing: -0.01em;
 }
 
@@ -110,11 +110,13 @@ a {
 }
 
 .name-row h1 {
-	margin: 0 0 10px;
+	margin: 0;
 }
 
 .fish-logo {
 	flex: none;
+	width: 24px;
+	height: 24px;
 	/* Mirrored so the head (eye + snout) faces right, toward the name. */
 	transform: scaleX(-1);
 }
