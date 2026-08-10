@@ -71,6 +71,12 @@ a {
 
 .wrap {
 	padding: 32px var(--content-margin) 96px;
+	/* Opaque so the content column fully covers the fixed reveal-footer
+	   sitting behind it (see .page-cover below) — scoped to .wrap itself,
+	   NOT its .page-cover parent, so the transparent .footer-spacer that
+	   sits alongside .wrap stays a genuine window through to the footer. */
+	background: var(--color-bg);
+	position: relative;
 }
 
 @media (max-width: 640px) {
@@ -83,17 +89,21 @@ a {
 
 /* -------------------------------------------------------------------------
    Reveal footer (ref: skizophonic.com)
-   .page-cover is an opaque layer sitting above .reveal-footer, which is
-   fixed to the bottom of the viewport and out of normal document flow
-   (contributes no scroll height itself). .footer-spacer reserves exactly
-   the footer's height in scroll room at the end of .page-cover, so as you
-   scroll through that spacer the fixed footer shows through underneath —
-   it reads as the page lifting away rather than a footer sliding up.
+   .page-cover sits above .reveal-footer, which is fixed to the bottom of
+   the viewport and out of normal document flow (contributes no scroll
+   height itself). .footer-spacer reserves exactly the footer's height in
+   scroll room at the end of .page-cover, so as you scroll through that
+   spacer the fixed footer shows through underneath — it reads as the page
+   lifting away rather than a footer sliding up.
+
+   Important: .page-cover itself must stay transparent (no background) —
+   only .wrap is opaque. If .page-cover painted a background too, it would
+   fill its entire box, spacer included, and silently hide the footer for
+   the full scroll length instead of revealing it.
    ---------------------------------------------------------------------- */
 .page-cover {
 	position: relative;
 	z-index: 1;
-	background: var(--color-bg);
 }
 
 .footer-spacer {
