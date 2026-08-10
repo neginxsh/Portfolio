@@ -96,11 +96,19 @@ a {
 
 .header h1 {
 	font-family: var(--font-serif-alt);
-	font-size: 28px;
+	font-size: 24px;
 	font-weight: 700;
 	line-height: 1.15;
 	margin: 0;
 	letter-spacing: -0.01em;
+}
+
+.header-top {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 8px 24px;
 }
 
 .name-row {
@@ -115,10 +123,58 @@ a {
 
 .fish-logo {
 	flex: none;
-	width: 24px;
-	height: 24px;
+	width: 22px;
+	height: 22px;
 	/* Mirrored so the head (eye + snout) faces right, toward the name. */
 	transform: scaleX(-1);
+}
+
+.nav {
+	font-size: 14px;
+	color: var(--color-text-muted);
+}
+
+.nav a {
+	color: var(--color-text-muted);
+	text-decoration: none;
+	transition: color 0.15s ease;
+}
+
+.nav a:hover {
+	color: var(--color-text);
+	text-decoration: underline;
+	text-decoration-color: var(--color-border);
+	text-underline-offset: 3px;
+}
+
+/* About paragraph — placed on the right, roughly under the nav, matching
+   where joannani.com sits its "Creating interactions..." statement. */
+.about-row {
+	display: flex;
+	justify-content: flex-end;
+	margin-top: 40px;
+}
+
+.about {
+	max-width: 480px;
+	font-family: var(--font-serif);
+	font-style: italic;
+	font-size: 20px;
+	line-height: 1.4;
+	color: var(--color-text-muted);
+	margin: 0;
+}
+
+@media (max-width: 640px) {
+	.about-row {
+		justify-content: flex-start;
+		margin-top: 24px;
+	}
+
+	.about {
+		max-width: 100%;
+		font-size: 18px;
+	}
 }
 
 .header .tagline {
