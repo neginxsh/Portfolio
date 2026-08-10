@@ -229,17 +229,31 @@ a {
    ---------------------------------------------------------------------- */
 .grid {
 	display: grid;
-	/* Fixed 3 columns (2 / 1 below) rather than auto-fit, so the row count
-	   is predictable and the scroll-in animation below reads as rows
-	   cascading in, not a shifting reflow. */
-	grid-template-columns: repeat(3, 1fr);
+	/* 12-column track so cards can span uneven widths (7/5 split) instead
+	   of a uniform grid — ref: yourwave.nl's alternating wide/narrow
+	   project pairs. */
+	grid-template-columns: repeat(12, 1fr);
 	gap: 20px;
 }
 
-@media (max-width: 900px) {
-	.grid {
-		grid-template-columns: repeat(2, 1fr);
-	}
+/* Two cards per row, alternating which side is wide: row 1 is
+   wide-then-narrow, row 2 is narrow-then-wide, and so on (a span larger
+   than the available tracks just clamps down once the grid collapses to
+   a single column on mobile, so no override needed there). */
+.card:nth-child(4n + 1) {
+	grid-column: span 7;
+}
+
+.card:nth-child(4n + 2) {
+	grid-column: span 5;
+}
+
+.card:nth-child(4n + 3) {
+	grid-column: span 5;
+}
+
+.card:nth-child(4n) {
+	grid-column: span 7;
 }
 
 @media (max-width: 560px) {
@@ -291,11 +305,19 @@ a {
 }
 
 .card-cover {
-	aspect-ratio: 16 / 10;
+	/* Fixed height (not aspect-ratio) so both cards in a row line up even
+	   though their widths differ — matches yourwave.nl's block rhythm. */
+	height: 320px;
 	display: grid;
 	place-items: center;
 	position: relative;
 	overflow: hidden;
+}
+
+@media (max-width: 560px) {
+	.card-cover {
+		height: 220px;
+	}
 }
 
 .card-cover .glyph {
