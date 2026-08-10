@@ -65,22 +65,23 @@ a {
 }
 
 .wrap {
-	padding: 64px var(--content-margin) 96px;
+	padding: 32px var(--content-margin) 96px;
 }
 
 @media (max-width: 640px) {
 	.wrap {
 		--content-margin: 20px;
-		padding-top: 40px;
+		padding-top: 24px;
 		padding-bottom: 64px;
 	}
 }
 
 /* -------------------------------------------------------------------------
    Header
+   Sits flush in the top-left corner, aligned with the grid's left edge.
    ---------------------------------------------------------------------- */
 .header {
-	margin-bottom: 32px;
+	margin-bottom: 20px;
 }
 
 .header .role {
@@ -118,32 +119,8 @@ a {
 .header .tagline {
 	font-size: 16px;
 	color: var(--color-text-muted);
-	margin: 0 0 12px;
+	margin: 0;
 	max-width: 560px;
-}
-
-.header .links {
-	font-size: 15px;
-	display: flex;
-	flex-wrap: wrap;
-	gap: 6px 10px;
-}
-
-.header .links a {
-	color: var(--color-text-muted);
-	text-decoration: underline;
-	text-decoration-color: var(--color-border);
-	text-underline-offset: 3px;
-	transition: color 0.15s ease, text-decoration-color 0.15s ease;
-}
-
-.header .links a:hover {
-	color: var(--color-text);
-	text-decoration-color: currentColor;
-}
-
-.header .links .sep {
-	color: var(--color-text-faint);
 }
 
 /* -------------------------------------------------------------------------
