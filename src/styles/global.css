@@ -131,7 +131,10 @@ a {
    ---------------------------------------------------------------------- */
 .grid {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+	/* auto-fit (not auto-fill) so existing cards stretch to fill the row —
+	   the grid's total width should always match the full-bleed content
+	   width, not leave a gap when there are few cards. */
+	grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
 	gap: 20px;
 }
 
