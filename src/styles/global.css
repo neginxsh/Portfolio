@@ -33,8 +33,10 @@
 	/* Single weight for every system-sans element (nav, cards, footer, tag
 	   labels, etc.) so nothing looks heavier/lighter than anything else. */
 	--weight-sans: 500;
-	/* Rough fallback for first paint before the ResizeObserver in
-	   index.astro measures the real reveal-footer height. */
+	/* Rough fallbacks for first paint before the ResizeObservers in
+	   index.astro measure the real sticky-nav / hero / footer heights. */
+	--nav-height: 88px;
+	--hero-height: 140px;
 	--footer-height: 420px;
 
 	color-scheme: light;
@@ -101,46 +103,139 @@ a {
 	background: var(--color-accent-soft);
 }
 
+/* Custom cursor dot (ref: jingjinghan.com) — native cursor is hidden only
+   via this class, added by the script in Layout.astro once it confirms a
+   fine pointer and actually runs, so a JS failure never leaves the page
+   with no cursor at all. */
+.has-custom-cursor,
+.has-custom-cursor body,
+.has-custom-cursor a,
+.has-custom-cursor button {
+	cursor: none;
+}
+
+.cursor-dot {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+	background: var(--color-accent);
+	pointer-events: none;
+	z-index: 9999;
+	opacity: 0;
+	transform: translate3d(-100px, -100px, 0);
+	transition: opacity 0.2s ease, width 0.18s ease, height 0.18s ease;
+}
+
+.cursor-dot.is-active {
+	opacity: 1;
+}
+
+.cursor-dot.is-hover {
+	width: 30px;
+	height: 30px;
+}
+
 .wrap {
 	padding: 32px var(--content-margin) 96px;
-	/* Opaque so the content column fully covers the fixed reveal-footer
-	   sitting behind it — deliberately scoped to .wrap itself, NOT its
-	   .page-cover parent. A parent's background paints its ENTIRE box,
-	   including the transparent .footer-spacer sibling below .wrap — if
-	   .page-cover carried this instead, it would silently hide the footer
-	   for the whole scroll length rather than revealing it. */
+	/* Opaque so the content column fully covers the fixed panels sitting
+	   behind it — deliberately scoped to .wrap itself, NOT its .page-cover
+	   parent. A parent's background paints its ENTIRE box, including the
+	   transparent spacer siblings next to .wrap — if .page-cover carried
+	   this instead, it would silently hide the hero/footer for the whole
+	   scroll length rather than revealing them. */
 	background: var(--color-bg);
 	position: relative;
 }
 
 @media (max-width: 640px) {
-	.wrap {
+	:root {
+		/* Global, not scoped to .wrap — .sticky-nav and .hero-fixed sit
+		   outside .wrap now and need the same margin. */
 		--content-margin: 20px;
+	}
+
+	.wrap {
 		padding-top: 24px;
 		padding-bottom: 64px;
 	}
 }
 
 /* -------------------------------------------------------------------------
-   Reveal footer (ref: skizophonic.com) — see index.astro for the
-   ResizeObserver that keeps --footer-height (and so .footer-spacer) in
-   sync with the fixed footer's real, current height.
+   Symmetric reveal, top and bottom (ref: skizophonic.com's footer,
+   mirrored for the hero) — see index.astro for the ResizeObservers that
+   keep --nav-height / --hero-height / --footer-height synced to each
+   panel's real, current size.
+
+   .sticky-nav pins to the top always. .hero-fixed and .reveal-footer are
+   both fixed panels sitting behind .page-cover's opaque content; the
+   spacers below reserve each panel's height in scroll room so scrolling
+   to the very top or bottom is what reveals them.
    ---------------------------------------------------------------------- */
 .page-cover {
 	position: relative;
 	z-index: 1;
+	/* Transparent to clicks by default — .footer-spacer having
+	   pointer-events: none only skips THAT element during hit-testing;
+	   without this, the still-clickable (if invisible) .page-cover parent
+	   underneath it would keep winning the hit over .reveal-footer below,
+	   which is exactly what was blocking every footer link. Re-enabled on
+	   .wrap, the actual opaque content, since pointer-events is inherited. */
+	pointer-events: none;
+}
+
+.page-cover > .wrap {
+	pointer-events: auto;
+}
+
+.hero-spacer,
+.footer-spacer {
+	/* Never intercept clicks meant for the fixed panel showing through —
+	   an empty div still blocks hit-testing by default even when it's
+	   visually transparent. */
+	pointer-events: none;
+}
+
+.hero-spacer {
+	height: var(--hero-height);
 }
 
 .footer-spacer {
 	height: var(--footer-height);
 }
 
+.hero-fixed,
 .reveal-footer {
 	position: fixed;
 	inset-inline: 0;
-	bottom: 0;
 	z-index: 0;
 	background: var(--color-bg);
+}
+
+.hero-fixed {
+	top: var(--nav-height);
+	padding: 0 var(--content-margin) 32px;
+}
+
+.reveal-footer {
+	bottom: 0;
+}
+
+.sticky-nav {
+	position: sticky;
+	top: 0;
+	z-index: 3;
+	background: var(--color-bg);
+	padding: 32px var(--content-margin) 20px;
+}
+
+@media (max-width: 640px) {
+	.sticky-nav {
+		padding-top: 24px;
+		padding-bottom: 16px;
+	}
 }
 
 /* -------------------------------------------------------------------------
@@ -164,7 +259,11 @@ a {
 	letter-spacing: 0.01em;
 }
 
-.header h1 {
+/* .header h1 covers case-study pages (project title); .name-row h1 covers
+   the home page name, which no longer has a .header ancestor now that
+   .sticky-nav/.hero-fixed replaced that single wrapping <header>. */
+.header h1,
+.name-row h1 {
 	/* Same family as the about paragraph (Instrument Serif — only ships a
 	   regular weight, so no font-weight: 700 here). */
 	font-family: var(--font-serif);
@@ -187,10 +286,6 @@ a {
 	display: flex;
 	align-items: center;
 	gap: 10px;
-}
-
-.name-row h1 {
-	margin: 0;
 }
 
 .fish-logo {

@@ -6,31 +6,41 @@ import { projects } from "../data/projects.ts";
 
 <Layout title="Negin Sheibani — Product Designer">
 	<!--
-		Reveal footer (ref: skizophonic.com): .page-cover (header + grid,
-		opaque) sits above .reveal-footer, which is fixed to the viewport
-		bottom and out of document flow. .footer-spacer reserves the
-		footer's real height in scroll room, kept in sync by a
-		ResizeObserver in the script below — not a one-off measurement, so
-		it self-corrects for ANY size change (webfont swap, resize, content
-		edits), not just the events we remembered to listen for.
-	-->
-	<div class="page-cover">
-		<div class="wrap">
-			<header class="header">
-				<div class="header-top">
-					<div class="name-row">
-						<FishLogo class="fish-logo" />
-						<h1>Negin Sheibani</h1>
-					</div>
-					<nav class="nav" aria-label="Primary">
-						<a href="/">Work</a>, <a href="/resume.pdf" target="_blank" rel="noopener noreferrer">Resume</a>, <a href="mailto:neginxsheibani@gmail.com">Connect</a>
-					</nav>
-				</div>
-				<div class="about-row">
-					<p class="about">About paragraph goes here — a few lines on what you do and how you think about it.</p>
-				</div>
-			</header>
+		Symmetric reveal, top and bottom (ref: skizophonic.com's footer,
+		mirrored for the hero):
 
+		.sticky-nav (name + nav) stays pinned to the top always. Below it,
+		.hero-fixed (the about paragraph) and .reveal-footer (the contact
+		section) are both `position: fixed` panels sitting BEHIND the
+		opaque scrolling content (.page-cover, via its .wrap children).
+		.hero-spacer and .footer-spacer reserve each fixed panel's real
+		height in scroll room at the top and bottom of that opaque content,
+		kept in sync by ResizeObservers below — so scrolling to the very
+		top reveals the hero out from under the nav, and scrolling to the
+		very bottom reveals the footer, the same mechanic both ways.
+	-->
+	<div class="sticky-nav">
+		<div class="header-top">
+			<div class="name-row">
+				<FishLogo class="fish-logo" />
+				<h1>Negin Sheibani</h1>
+			</div>
+			<nav class="nav" aria-label="Primary">
+				<a href="/">Work</a>, <a href="/resume.pdf" target="_blank" rel="noopener noreferrer">Resume</a>, <a href="mailto:neginxsheibani@gmail.com">Connect</a>
+			</nav>
+		</div>
+	</div>
+
+	<div class="hero-fixed">
+		<div class="about-row">
+			<p class="about">About paragraph goes here — a few lines on what you do and how you think about it.</p>
+		</div>
+	</div>
+
+	<div class="page-cover">
+		<div class="hero-spacer" aria-hidden="true"></div>
+
+		<div class="wrap">
 			<hr class="section-divider" />
 
 			<div class="grid">
@@ -66,6 +76,9 @@ import { projects } from "../data/projects.ts";
 					<a class="contact-link" href="mailto:neginxsheibani@gmail.com">
 						Email <span aria-hidden="true">↗</span>
 					</a>
+					<a class="contact-link" href="/resume.pdf" target="_blank" rel="noopener noreferrer">
+						Resume <span aria-hidden="true">↗</span>
+					</a>
 					<a class="contact-link" href="https://www.linkedin.com/in/negin-ssheibani" target="_blank" rel="noopener noreferrer">
 						LinkedIn <span aria-hidden="true">↗</span>
 					</a>
@@ -80,30 +93,29 @@ import { projects } from "../data/projects.ts";
 	</footer>
 
 	<script>
-		// Keep the spacer's height matched to the fixed footer's real
-		// height. A ResizeObserver watches the footer element directly, so
-		// it re-syncs on ANY size change — webfont swap, window resize,
-		// zoom, later content edits — rather than only the specific events
-		// (e.g. `resize`) we happened to think to listen for. This is what
-		// a one-shot measurement + resize-listener was missing: fonts load
-		// asynchronously, so the footer can grow/shrink well after the
-		// initial measurement with no `resize` event ever firing.
-		function syncFooterHeight(footer: HTMLElement) {
-			document.documentElement.style.setProperty("--footer-height", `${footer.offsetHeight}px`);
-		}
-
-		const footerEl = document.querySelector<HTMLElement>(".reveal-footer");
-		if (footerEl) {
-			syncFooterHeight(footerEl);
+		// Keep each spacer's height matched to its fixed panel's real
+		// height, and the hero's top offset matched to the sticky nav's
+		// real height. ResizeObservers watch the actual elements, so they
+		// re-sync on ANY size change — webfont swap, window resize, zoom,
+		// later content edits — rather than only specific events we
+		// happened to think to listen for (fonts load asynchronously, so a
+		// one-shot measurement + `resize` listener alone can go stale with
+		// nothing to catch it).
+		function watch(el: HTMLElement | null, cssVar: string, prop: "offsetHeight" = "offsetHeight") {
+			if (!el) return;
+			const sync = () => document.documentElement.style.setProperty(cssVar, `${el[prop]}px`);
+			sync();
 			if ("ResizeObserver" in window) {
-				new ResizeObserver(() => syncFooterHeight(footerEl)).observe(footerEl);
+				new ResizeObserver(sync).observe(el);
 			} else {
-				// Very old browsers only: no live observation, so at least
-				// cover the common resize + font-load cases explicitly.
-				window.addEventListener("resize", () => syncFooterHeight(footerEl));
-				document.fonts?.ready?.then(() => syncFooterHeight(footerEl));
+				window.addEventListener("resize", sync);
+				document.fonts?.ready?.then(sync);
 			}
 		}
+
+		watch(document.querySelector(".sticky-nav"), "--nav-height");
+		watch(document.querySelector(".hero-fixed"), "--hero-height");
+		watch(document.querySelector(".reveal-footer"), "--footer-height");
 	</script>
 
 	<script>

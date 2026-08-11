@@ -35,6 +35,42 @@ const {
 		<title>{title}</title>
 	</head>
 	<body>
+		<!--
+			Custom cursor dot (ref: jingjinghan.com), in the site accent color
+			instead of that site's mix-blend-mode inversion trick. Only shown
+			once the script below confirms a fine pointer AND actually runs —
+			the native cursor is hidden via a class it adds, never by default
+			CSS, so a JS failure can't leave someone with no cursor at all.
+		-->
+		<div class="cursor-dot" aria-hidden="true"></div>
 		<slot />
+		<script>
+			if (window.matchMedia("(pointer: fine)").matches) {
+				const dot = document.querySelector<HTMLElement>(".cursor-dot");
+				if (dot) {
+					document.documentElement.classList.add("has-custom-cursor");
+
+					let seen = false;
+					window.addEventListener(
+						"mousemove",
+						(e) => {
+							if (!seen) {
+								seen = true;
+								dot.classList.add("is-active");
+							}
+							dot.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
+						},
+						{ passive: true },
+					);
+					window.addEventListener("mouseleave", () => dot.classList.remove("is-active"));
+					document.addEventListener("mouseover", (e) => {
+						if ((e.target as HTMLElement).closest("a, button")) dot.classList.add("is-hover");
+					});
+					document.addEventListener("mouseout", (e) => {
+						if ((e.target as HTMLElement).closest("a, button")) dot.classList.remove("is-hover");
+					});
+				}
+			}
+		</script>
 	</body>
 </html>
