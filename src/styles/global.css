@@ -427,8 +427,12 @@ a {
 }
 
 .contact-heading {
+	/* Same family as the name/about paragraph, and the same weight as
+	   .about (Instrument Serif only ships regular anyway) — same size as
+	   before, just no longer borrowing the system font's bold cut. */
+	font-family: var(--font-serif);
 	font-size: clamp(32px, 5vw, 56px);
-	font-weight: 800;
+	font-weight: 400;
 	letter-spacing: -0.02em;
 	line-height: 1.05;
 	margin: 0 0 28px;
