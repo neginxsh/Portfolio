@@ -5,63 +5,106 @@ import { projects } from "../data/projects.ts";
 ---
 
 <Layout title="Negin Sheibani — Product Designer">
-	<div class="wrap">
-		<header class="header">
-			<div class="header-top">
-				<div class="name-row">
-					<FishLogo class="fish-logo" />
-					<h1>Negin Sheibani</h1>
+	<!--
+		Reveal footer (ref: skizophonic.com): .page-cover (header + grid,
+		opaque) sits above .reveal-footer, which is fixed to the viewport
+		bottom and out of document flow. .footer-spacer reserves the
+		footer's real height in scroll room, kept in sync by a
+		ResizeObserver in the script below — not a one-off measurement, so
+		it self-corrects for ANY size change (webfont swap, resize, content
+		edits), not just the events we remembered to listen for.
+	-->
+	<div class="page-cover">
+		<div class="wrap">
+			<header class="header">
+				<div class="header-top">
+					<div class="name-row">
+						<FishLogo class="fish-logo" />
+						<h1>Negin Sheibani</h1>
+					</div>
+					<nav class="nav" aria-label="Primary">
+						<a href="/">Work</a>, <a href="/resume.pdf" target="_blank" rel="noopener noreferrer">Resume</a>, <a href="mailto:neginxsheibani@gmail.com">Connect</a>
+					</nav>
 				</div>
-				<nav class="nav" aria-label="Primary">
-					<a href="/">Work</a>, <a href="/resume.pdf" target="_blank" rel="noopener noreferrer">Resume</a>, <a href="mailto:neginxsheibani@gmail.com">Connect</a>
-				</nav>
-			</div>
-			<div class="about-row">
-				<p class="about">About paragraph goes here — a few lines on what you do and how you think about it.</p>
-			</div>
-		</header>
+				<div class="about-row">
+					<p class="about">About paragraph goes here — a few lines on what you do and how you think about it.</p>
+				</div>
+			</header>
 
-		<hr class="section-divider" />
+			<hr class="section-divider" />
 
-		<div class="grid">
-			{projects.map((p, i) => (
-				<a class="card" href={`/case-studies/${p.slug}/`} data-index={i}>
-					<div class="card-cover" style={`background:${p.color}`}>
-						<span class="glyph">{p.title.charAt(p.title.length - 1)}</span>
-					</div>
-					<div class="card-body">
-						<div class="card-title-row">
-							<span class="card-dot" style={`background:${p.color}`}></span>
-							{p.title}
+			<div class="grid">
+				{projects.map((p, i) => (
+					<a class="card" href={`/case-studies/${p.slug}/`} data-index={i}>
+						<div class="card-cover" style={`background:${p.color}`}>
+							<span class="glyph">{p.title.charAt(p.title.length - 1)}</span>
 						</div>
-						<p class="card-meta">{p.category} · {p.year}</p>
-					</div>
-				</a>
-			))}
+						<div class="card-body">
+							<div class="card-title-row">
+								<span class="card-dot" style={`background:${p.color}`}></span>
+								{p.title}
+							</div>
+							<p class="card-meta">{p.category} · {p.year}</p>
+						</div>
+					</a>
+				))}
+			</div>
 		</div>
 
-		<hr class="section-divider section-divider--footer" />
-
-		<section class="contact-footer" id="contact">
-			<p class="contact-eyebrow">Contact</p>
-			<p class="contact-status">Open to new opportunities</p>
-			<h2 class="contact-heading">Let's work together.</h2>
-			<a class="contact-email" href="mailto:neginxsheibani@gmail.com">neginxsheibani@gmail.com</a>
-			<div class="contact-links">
-				<a class="contact-link" href="mailto:neginxsheibani@gmail.com">
-					Email <span aria-hidden="true">↗</span>
-				</a>
-				<a class="contact-link" href="https://www.linkedin.com/in/negin-ssheibani" target="_blank" rel="noopener noreferrer">
-					LinkedIn <span aria-hidden="true">↗</span>
-				</a>
-			</div>
-		</section>
-
-		<footer class="footer">
-			<span>&copy; {new Date().getFullYear()} Negin Sheibani</span>
-			<span>Built with Astro</span>
-		</footer>
+		<div class="footer-spacer" aria-hidden="true"></div>
 	</div>
+
+	<footer class="reveal-footer">
+		<div class="wrap">
+			<hr class="section-divider" />
+
+			<section class="contact-footer" id="contact">
+				<p class="contact-status">Open to new opportunities</p>
+				<h2 class="contact-heading">Let's work together.</h2>
+				<a class="contact-email" href="mailto:neginxsheibani@gmail.com">neginxsheibani@gmail.com</a>
+				<div class="contact-links">
+					<a class="contact-link" href="mailto:neginxsheibani@gmail.com">
+						Email <span aria-hidden="true">↗</span>
+					</a>
+					<a class="contact-link" href="https://www.linkedin.com/in/negin-ssheibani" target="_blank" rel="noopener noreferrer">
+						LinkedIn <span aria-hidden="true">↗</span>
+					</a>
+				</div>
+			</section>
+
+			<div class="footer">
+				<span>&copy; {new Date().getFullYear()} Negin Sheibani</span>
+				<span>Built with Astro</span>
+			</div>
+		</div>
+	</footer>
+
+	<script>
+		// Keep the spacer's height matched to the fixed footer's real
+		// height. A ResizeObserver watches the footer element directly, so
+		// it re-syncs on ANY size change — webfont swap, window resize,
+		// zoom, later content edits — rather than only the specific events
+		// (e.g. `resize`) we happened to think to listen for. This is what
+		// a one-shot measurement + resize-listener was missing: fonts load
+		// asynchronously, so the footer can grow/shrink well after the
+		// initial measurement with no `resize` event ever firing.
+		function syncFooterHeight(footer: HTMLElement) {
+			document.documentElement.style.setProperty("--footer-height", `${footer.offsetHeight}px`);
+		}
+
+		const footerEl = document.querySelector<HTMLElement>(".reveal-footer");
+		if (footerEl) {
+			syncFooterHeight(footerEl);
+			if ("ResizeObserver" in window) {
+				new ResizeObserver(() => syncFooterHeight(footerEl)).observe(footerEl);
+			} else {
+				// Very old browsers only: no live observation, so at least
+				// cover the common resize + font-load cases explicitly.
+				window.addEventListener("resize", () => syncFooterHeight(footerEl));
+				document.fonts?.ready?.then(() => syncFooterHeight(footerEl));
+			}
+		}
+	</script>
 
 	<script>
 		// Scroll-in reveal for project cards (ref: mynrd.co.uk's project grid).

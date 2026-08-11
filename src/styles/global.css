@@ -27,6 +27,9 @@
 	/* Single weight for every system-sans element (nav, cards, footer, tag
 	   labels, etc.) so nothing looks heavier/lighter than anything else. */
 	--weight-sans: 500;
+	/* Rough fallback for first paint before the ResizeObserver in
+	   index.astro measures the real reveal-footer height. */
+	--footer-height: 420px;
 
 	color-scheme: light;
 }
@@ -76,6 +79,14 @@ a {
 
 .wrap {
 	padding: 32px var(--content-margin) 96px;
+	/* Opaque so the content column fully covers the fixed reveal-footer
+	   sitting behind it — deliberately scoped to .wrap itself, NOT its
+	   .page-cover parent. A parent's background paints its ENTIRE box,
+	   including the transparent .footer-spacer sibling below .wrap — if
+	   .page-cover carried this instead, it would silently hide the footer
+	   for the whole scroll length rather than revealing it. */
+	background: var(--color-bg);
+	position: relative;
 }
 
 @media (max-width: 640px) {
@@ -84,6 +95,28 @@ a {
 		padding-top: 24px;
 		padding-bottom: 64px;
 	}
+}
+
+/* -------------------------------------------------------------------------
+   Reveal footer (ref: skizophonic.com) — see index.astro for the
+   ResizeObserver that keeps --footer-height (and so .footer-spacer) in
+   sync with the fixed footer's real, current height.
+   ---------------------------------------------------------------------- */
+.page-cover {
+	position: relative;
+	z-index: 1;
+}
+
+.footer-spacer {
+	height: var(--footer-height);
+}
+
+.reveal-footer {
+	position: fixed;
+	inset-inline: 0;
+	bottom: 0;
+	z-index: 0;
+	background: var(--color-bg);
 }
 
 /* -------------------------------------------------------------------------
@@ -98,13 +131,6 @@ a {
 	border: none;
 	border-top: 1px solid var(--color-border);
 	margin: 0 0 32px;
-}
-
-/* The divider below the grid, above the contact footer — same 32px gap to
-   the grid as .section-divider has going into it, just mirrored (top
-   margin instead of bottom). */
-.section-divider--footer {
-	margin: 32px 0 0;
 }
 
 .header .role {
@@ -184,7 +210,9 @@ a {
 }
 
 .nav {
-	font-size: 14px;
+	/* Same size as the contact links / status label (13px) — weight already
+	   matches everywhere via --weight-sans on body. */
+	font-size: 13px;
 	color: var(--color-text-muted);
 }
 
@@ -211,9 +239,11 @@ a {
 
 .about {
 	max-width: 480px;
-	/* Same family and weight as the name — upright, not italic, so the two
-	   read as one consistent typeface choice rather than two treatments. */
 	font-family: var(--font-serif);
+	font-style: italic;
+	/* Instrument Serif only ships a regular weight — pin it explicitly so
+	   it doesn't inherit body's --weight-sans (500) meant for the system
+	   font and end up synthetically bolded. */
 	font-weight: 400;
 	font-size: 20px;
 	line-height: 1.4;
@@ -377,22 +407,6 @@ a {
    Big CTA block (ref: enzo-casalini.dev's contact section, minus the
    animated centerpiece).
    ---------------------------------------------------------------------- */
-.contact-footer {
-	/* The line above this section is now the standalone
-	   .section-divider--footer <hr>, sized to match the top divider's gap
-	   to the grid — this margin is just the breathing room from that line
-	   down to the "Contact" label. */
-	margin-top: 56px;
-}
-
-.contact-eyebrow {
-	font-size: 13px;
-	letter-spacing: 0.1em;
-	text-transform: uppercase;
-	color: var(--color-text-faint);
-	margin: 0 0 40px;
-}
-
 .contact-status {
 	font-size: 13px;
 	letter-spacing: 0.06em;
