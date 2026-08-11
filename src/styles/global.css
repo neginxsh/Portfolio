@@ -359,7 +359,7 @@ a {
 .card:hover {
 	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 	transform: translateY(-2px) scale(1);
-	border-color: var(--color-accent-soft);
+	border-color: rgba(55, 53, 47, 0.16);
 }
 
 @media (prefers-color-scheme: dark) {
