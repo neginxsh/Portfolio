@@ -24,9 +24,9 @@
 	/* Full-bleed content: a fixed side margin rather than a narrow centered
 	   column, so the page uses the whole browser width (ref: joannani.com). */
 	--content-margin: 32px;
-	/* Rough fallback for first paint before the sync script measures the
-	   real footer height (see index.astro) — avoids a layout jump. */
-	--footer-height: 420px;
+	/* Single weight for every system-sans element (nav, cards, footer, tag
+	   labels, etc.) so nothing looks heavier/lighter than anything else. */
+	--weight-sans: 500;
 
 	color-scheme: light;
 }
@@ -59,10 +59,15 @@ body {
 
 body {
 	font-family: var(--font-sans);
+	font-weight: var(--weight-sans);
 	background: var(--color-bg);
 	color: var(--color-text);
 	-webkit-font-smoothing: antialiased;
 	line-height: 1.5;
+	/* Stop the browser from silently scrolling the page to "compensate" for
+	   layout shift while webfonts swap in above the fold — that's what was
+	   landing loads mid-page instead of at the top. */
+	overflow-anchor: none;
 }
 
 a {
@@ -71,12 +76,6 @@ a {
 
 .wrap {
 	padding: 32px var(--content-margin) 96px;
-	/* Opaque so the content column fully covers the fixed reveal-footer
-	   sitting behind it (see .page-cover below) — scoped to .wrap itself,
-	   NOT its .page-cover parent, so the transparent .footer-spacer that
-	   sits alongside .wrap stays a genuine window through to the footer. */
-	background: var(--color-bg);
-	position: relative;
 }
 
 @media (max-width: 640px) {
@@ -85,37 +84,6 @@ a {
 		padding-top: 24px;
 		padding-bottom: 64px;
 	}
-}
-
-/* -------------------------------------------------------------------------
-   Reveal footer (ref: skizophonic.com)
-   .page-cover sits above .reveal-footer, which is fixed to the bottom of
-   the viewport and out of normal document flow (contributes no scroll
-   height itself). .footer-spacer reserves exactly the footer's height in
-   scroll room at the end of .page-cover, so as you scroll through that
-   spacer the fixed footer shows through underneath — it reads as the page
-   lifting away rather than a footer sliding up.
-
-   Important: .page-cover itself must stay transparent (no background) —
-   only .wrap is opaque. If .page-cover painted a background too, it would
-   fill its entire box, spacer included, and silently hide the footer for
-   the full scroll length instead of revealing it.
-   ---------------------------------------------------------------------- */
-.page-cover {
-	position: relative;
-	z-index: 1;
-}
-
-.footer-spacer {
-	height: var(--footer-height);
-}
-
-.reveal-footer {
-	position: fixed;
-	inset-inline: 0;
-	bottom: 0;
-	z-index: 0;
-	background: var(--color-bg);
 }
 
 /* -------------------------------------------------------------------------
@@ -132,9 +100,15 @@ a {
 	margin: 0 0 32px;
 }
 
+/* The divider below the grid, above the contact footer — same 32px gap to
+   the grid as .section-divider has going into it, just mirrored (top
+   margin instead of bottom). */
+.section-divider--footer {
+	margin: 32px 0 0;
+}
+
 .header .role {
 	font-size: 15px;
-	font-weight: 600;
 	color: var(--color-text-muted);
 	margin: 0 0 4px;
 	letter-spacing: 0.01em;
@@ -237,8 +211,10 @@ a {
 
 .about {
 	max-width: 480px;
+	/* Same family and weight as the name — upright, not italic, so the two
+	   read as one consistent typeface choice rather than two treatments. */
 	font-family: var(--font-serif);
-	font-style: italic;
+	font-weight: 400;
 	font-size: 20px;
 	line-height: 1.4;
 	color: var(--color-text-muted);
@@ -381,7 +357,6 @@ a {
 	align-items: center;
 	gap: 8px;
 	font-size: 14px;
-	font-weight: 500;
 }
 
 .card-dot {
@@ -403,14 +378,15 @@ a {
    animated centerpiece).
    ---------------------------------------------------------------------- */
 .contact-footer {
-	margin-top: 96px;
-	padding-top: 56px;
-	border-top: 1px solid var(--color-border);
+	/* The line above this section is now the standalone
+	   .section-divider--footer <hr>, sized to match the top divider's gap
+	   to the grid — this margin is just the breathing room from that line
+	   down to the "Contact" label. */
+	margin-top: 56px;
 }
 
 .contact-eyebrow {
 	font-size: 13px;
-	font-weight: 600;
 	letter-spacing: 0.1em;
 	text-transform: uppercase;
 	color: var(--color-text-faint);
@@ -419,7 +395,6 @@ a {
 
 .contact-status {
 	font-size: 13px;
-	font-weight: 600;
 	letter-spacing: 0.06em;
 	text-transform: uppercase;
 	color: var(--color-text-muted);
@@ -440,7 +415,6 @@ a {
 
 .contact-email {
 	font-size: 19px;
-	font-weight: 500;
 	color: var(--color-text);
 	text-decoration: underline;
 	text-decoration-color: var(--color-border);
@@ -461,7 +435,6 @@ a {
 
 .contact-link {
 	font-size: 13px;
-	font-weight: 600;
 	letter-spacing: 0.06em;
 	text-transform: uppercase;
 	color: var(--color-text-muted);
