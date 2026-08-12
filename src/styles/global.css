@@ -98,10 +98,15 @@ a {
 	border: 0;
 }
 
-/* Custom cursor dot (ref: jingjinghan.com) — native cursor is hidden only
-   via this class, added by the script in Layout.astro once it confirms a
-   fine pointer and actually runs, so a JS failure never leaves the page
-   with no cursor at all. */
+/* Custom cursor (ref: jingjinghan.com — matched to its actual values:
+   16px default, a mix-blend-mode: difference white circle, growing to
+   44px over ordinary links/buttons and 150px with a fade/scale-in label
+   over "preview" style links — our project cards). Native cursor is
+   hidden only via .has-custom-cursor, added by the script in
+   Layout.astro once it confirms a fine pointer and actually runs, so a
+   JS failure never leaves the page with no cursor at all. Suppressed
+   again (native cursor shown instead) while hovering .sticky-nav,
+   same as jingjinghan.com does for its own nav. */
 .has-custom-cursor,
 .has-custom-cursor body,
 .has-custom-cursor a,
@@ -109,117 +114,76 @@ a {
 	cursor: none;
 }
 
+.nav-native-cursor,
+.nav-native-cursor a,
+.nav-native-cursor button {
+	cursor: pointer !important;
+}
+
 .cursor-dot {
+	display: none;
 	position: fixed;
 	top: 0;
 	left: 0;
-	width: 14px;
-	height: 14px;
-	border-radius: 50%;
-	/* Solid accent blue, always — the dot itself never changes color, only
-	   size (bigger over links/buttons). What changes color instead is
-	   whatever text is directly underneath it — see .reveal-text below. */
-	background: var(--color-accent);
-	pointer-events: none;
 	z-index: 9999;
+	justify-content: center;
+	align-items: center;
+	width: 16px;
+	height: 16px;
+	border-radius: 9999px;
+	background: #fff;
+	mix-blend-mode: difference;
+	pointer-events: none;
+	will-change: transform;
 	opacity: 0;
 	/* Position is set inline every mousemove and deliberately left out of
 	   this transition — animating transform here would make the dot lag
 	   behind the pointer instead of tracking it 1:1. */
-	transform: translate3d(-100px, -100px, 0) translate(-50%, -50%);
-	transition: opacity 0.2s ease, width 0.25s ease, height 0.25s ease;
+	transition: opacity 0.2s ease, width 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+		height 0.4s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.3s;
+}
+
+.has-custom-cursor .cursor-dot {
+	display: flex;
 }
 
 .cursor-dot.is-active {
 	opacity: 1;
 }
 
-/* Hovering a link/button — bigger, same blue. */
+/* Hidden while hovering the nav — native cursor takes over there instead. */
+.has-custom-cursor.nav-hovering .cursor-dot {
+	opacity: 0;
+}
+
+/* Ordinary links/buttons. */
 .cursor-dot.is-hover {
-	width: 46px;
-	height: 46px;
+	width: 44px;
+	height: 44px;
 }
 
-/* Hidden while the cursor-label pill (below) is showing instead — the two
-   don't overlap. */
-.cursor-dot.is-label {
-	opacity: 0;
+/* Project cards — bigger, with the label below fading/scaling in. */
+.cursor-dot.is-view {
+	width: 150px;
+	height: 150px;
 }
 
-/* Cursor "spotlight" text reveal — the glyphs directly under the pointer
-   turn white, matching the visible blue disc passing over them, without
-   any duplicate text node: a radial-gradient (white inside a circle
-   centered on the pointer, the element's own real text color outside
-   it) is clipped to the text's own glyph shapes via background-clip:
-   text. --reveal-x/--reveal-y are LOCAL to the element (px from its own
-   top-left) and --reveal-r is the circle's radius — both set by the
-   script in Layout.astro on every mousemove while that element is the
-   hover target, matched to the dot's own current size so the reveal
-   lines up with the visible circle. --reveal-base is the element's real
-   resolved color, captured once by the script so this works for
-   headings/links/muted footer text alike with no per-selector overrides.
-   Parked off-element by default so nothing shows until actually hovered. */
-.reveal-text {
-	--reveal-x: -999px;
-	--reveal-y: -999px;
-	--reveal-r: 7px;
-	background-image: radial-gradient(
-		circle var(--reveal-r) at var(--reveal-x) var(--reveal-y),
-		#fff 97%,
-		var(--reveal-base, currentColor) 100%
-	);
-	-webkit-background-clip: text;
-	background-clip: text;
-	/* !important: this is a runtime-toggled state, competing against every
-	   element's own base `color` rule (.about, .card-meta, .contact-status,
-	   etc.) at the same single-class specificity — without it, whichever of
-	   those happens to be declared later in this file would silently win
-	   and cancel the reveal. */
-	color: transparent !important;
-}
-
-/* Cursor-following label (ref: xhulia.com's email hover) — a small pill
-   that tracks the pointer and names what clicking will do ("Copy" →
-   "Copied!"). Position (outer element, translate3d) and pop-in scale
-   (inner element) are split across two elements on purpose: they used to
-   share one `transform`, and transitioning that same property for both
-   the constant per-mousemove position update AND the show/hide scale
-   made the label visibly lag and stutter behind the pointer instead of
-   tracking it smoothly. Splitting them means the position snaps
-   instantly (like .cursor-dot does) while only the scale eases. */
 .cursor-label {
-	position: fixed;
-	top: 0;
-	left: 0;
-	pointer-events: none;
-	z-index: 9999;
-	opacity: 0;
-	transform: translate3d(-100px, -100px, 0) translate(-50%, -50%);
-	transition: opacity 0.15s ease;
-}
-
-.cursor-label.is-active {
-	opacity: 1;
-}
-
-.cursor-label-inner {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	padding: 0 18px;
-	height: 40px;
-	border-radius: 20px;
-	background: var(--color-accent);
-	color: #fff;
 	font-family: var(--font-sans);
-	font-size: 13px;
-	font-weight: 500;
+	letter-spacing: 0.01em;
+	text-align: center;
+	color: #000;
 	white-space: nowrap;
-	transform: scale(0.7);
-	transition: transform 0.2s ease;
+	opacity: 0;
+	font-size: 17px;
+	font-weight: 500;
+	line-height: 1.15;
+	transform: scale(0.5);
+	transition: opacity 0.3s, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.cursor-label.is-active .cursor-label-inner {
+.cursor-dot.is-view .cursor-label {
+	opacity: 1;
 	transform: scale(1);
 }
 
@@ -650,6 +614,80 @@ a {
 .contact-email.is-copied {
 	color: var(--color-accent);
 	text-decoration-color: currentColor;
+}
+
+/* Rotating "copy" badge (ref: xhulia.com's email hover) — a small
+   looping-text ring on a curved SVG path, positioned beside the link and
+   spinning continuously, rather than a tooltip that follows the cursor
+   around the screen. */
+.email-badge-wrap {
+	position: relative;
+	display: inline-block;
+}
+
+.email-badge {
+	position: absolute;
+	top: 50%;
+	left: calc(100% + 6px);
+	width: 64px;
+	height: 64px;
+	/* Position/scale-in only — the continuous rotation lives on the SVG
+	   child below, so this transform (which changes on hover/copy) never
+	   fights with that separate, always-running animation. */
+	transform: translateY(-50%) scale(0.7);
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.email-badge-wrap:hover .email-badge,
+.email-badge-wrap.is-copied .email-badge {
+	opacity: 1;
+	transform: translateY(-50%) scale(1);
+}
+
+.email-badge-spin {
+	display: block;
+	width: 100%;
+	height: 100%;
+	animation: email-badge-spin 6s linear infinite;
+}
+
+@keyframes email-badge-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+.email-badge-text {
+	font-size: 8.5px;
+	font-weight: 500;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	fill: var(--color-accent);
+}
+
+/* Two loops (default / copied) stacked in the same spot — toggled by
+   swapping which is visible rather than mutating either's text, so the
+   seamless repeating phrase is never rebuilt mid-animation. */
+.email-badge-text-copied {
+	opacity: 0;
+}
+
+.email-badge-wrap.is-copied .email-badge-text-default {
+	opacity: 0;
+}
+
+.email-badge-wrap.is-copied .email-badge-text-copied {
+	opacity: 1;
+}
+
+@media (max-width: 640px) {
+	/* Hover-only affordance on a device that can't hover — hide it rather
+	   than have it appear stuck open after a tap. */
+	.email-badge {
+		display: none;
+	}
 }
 
 .contact-links {

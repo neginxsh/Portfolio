@@ -43,7 +43,7 @@ import { projects } from "../data/projects.ts";
 
 			<div class="grid">
 				{projects.map((p, i) => (
-					<a class="card" href={`/case-studies/${p.slug}/`} data-index={i}>
+					<a class="card" href={`/case-studies/${p.slug}/`} data-index={i} data-cursor-view="View">
 						<div class="card-cover" style={`background:${p.color}`}>
 							<span class="glyph">{p.title.charAt(p.title.length - 1)}</span>
 						</div>
@@ -71,14 +71,34 @@ import { projects } from "../data/projects.ts";
 					<div class="contact-footer-main">
 						<p class="contact-status">Open to new opportunities</p>
 						<h2 class="contact-heading">Let's work together.</h2>
-						<button
-							type="button"
-							class="contact-email"
-							data-email="neginxsheibani@gmail.com"
-							data-cursor-label="Copy"
-						>
-							neginxsheibani@gmail.com
-						</button>
+						<span class="email-badge-wrap">
+							<button type="button" class="contact-email" data-email="neginxsheibani@gmail.com">
+								neginxsheibani@gmail.com
+							</button>
+							<!--
+								Rotating circular "copy" badge (ref: xhulia.com's
+								email hover — a small looping-text badge on a
+								curved SVG path, positioned next to the link, not
+								following the cursor). Two <textPath> variants
+								(default / copied) sit stacked in the same spot;
+								the script below toggles which is visible on
+								click instead of mutating text content, so the
+								looping duplicate phrase stays intact.
+							-->
+							<span class="email-badge" aria-hidden="true">
+								<svg class="email-badge-spin" viewBox="0 0 100 100">
+									<defs>
+										<path id="email-badge-circle" d="M 50,50 m -35,0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0" />
+									</defs>
+									<text class="email-badge-text email-badge-text-default">
+										<textPath href="#email-badge-circle">Copy email · Copy email · </textPath>
+									</text>
+									<text class="email-badge-text email-badge-text-copied">
+										<textPath href="#email-badge-circle">Copied! · Copied! · </textPath>
+									</text>
+								</svg>
+							</span>
+						</span>
 						<span class="sr-only" role="status" aria-live="polite"></span>
 						<div class="contact-links">
 							<a class="contact-link" href="mailto:neginxsheibani@gmail.com">
@@ -194,18 +214,15 @@ import { projects } from "../data/projects.ts";
 	</script>
 
 	<script>
-		// Click-to-copy email (ref: xhulia.com — a cursor-following "Copy"
-		// label rather than swapping the visible address text itself; the
-		// label is a shared element owned by Layout.astro's cursor script,
-		// driven here via the button's data-cursor-label attribute). The
-		// address on the button never changes; on click it's copied to the
-		// clipboard, the cursor label flips to "Copied!" for a moment, and
-		// an aria-live region announces it for keyboard/touch/screen-reader
-		// users who never see the cursor label at all.
+		// Click-to-copy email. The address on the button never changes; on
+		// click it's copied to the clipboard, the rotating badge next to it
+		// (see .email-badge-wrap) swaps from its default loop to a
+		// "Copied!" loop for a moment, and an aria-live region announces it
+		// for keyboard/touch/screen-reader users who never see a hover
+		// badge at all (it's a :hover-driven affordance, mouse-only).
 		const emailButton = document.querySelector<HTMLButtonElement>(".contact-email");
+		const emailBadgeWrap = document.querySelector<HTMLElement>(".email-badge-wrap");
 		const status = document.querySelector<HTMLElement>(".contact-footer-main .sr-only");
-		const cursorLabel = document.querySelector<HTMLElement>(".cursor-label");
-		const cursorLabelInner = cursorLabel?.querySelector<HTMLElement>(".cursor-label-inner");
 
 		if (emailButton) {
 			const address = emailButton.dataset.email ?? emailButton.textContent!.trim();
@@ -222,18 +239,12 @@ import { projects } from "../data/projects.ts";
 
 				clearTimeout(revertTimer);
 				emailButton.classList.add("is-copied");
-				emailButton.dataset.cursorLabel = "Copied!";
-				if (cursorLabelInner && cursorLabel?.classList.contains("is-active")) {
-					cursorLabelInner.textContent = "Copied!";
-				}
+				emailBadgeWrap?.classList.add("is-copied");
 				if (status) status.textContent = "Email address copied to clipboard.";
 
 				revertTimer = setTimeout(() => {
 					emailButton.classList.remove("is-copied");
-					emailButton.dataset.cursorLabel = "Copy";
-					if (cursorLabelInner && cursorLabel?.classList.contains("is-active")) {
-						cursorLabelInner.textContent = "Copy";
-					}
+					emailBadgeWrap?.classList.remove("is-copied");
 				}, 1600);
 			});
 		}
