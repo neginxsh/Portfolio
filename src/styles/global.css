@@ -18,12 +18,11 @@
 	--color-pill-bg: #efeeec;
 	--color-pill-bg-active: #191919;
 	--color-pill-text-active: #ffffff;
-	/* Single accent, used only for interactive states (link hover, focus
-	   rings, card hover) — never as decoration — so color always means
-	   "this is interactive" and stays meaningful precisely because it's
-	   rare everywhere else on the page. */
-	--color-accent: #3e2ff0;
-	--color-accent-soft: rgba(62, 47, 240, 0.22);
+	/* Single accent, matched to the illustration's navy (#03268e) so every
+	   blue on the site is the same blue. Used for interactive states (link
+	   hover, focus rings, card hover) and the footer heading. */
+	--color-accent: #03268e;
+	--color-accent-soft: rgba(3, 38, 142, 0.22);
 
 	--radius-sm: 6px;
 	--radius-md: 10px;
@@ -496,6 +495,7 @@ a {
 	letter-spacing: -0.02em;
 	line-height: 1.05;
 	margin: 0 0 28px;
+	color: var(--color-accent);
 }
 
 .contact-email {
