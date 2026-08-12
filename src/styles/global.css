@@ -460,6 +460,34 @@ a {
    Big CTA block (ref: enzo-casalini.dev's contact section, minus the
    animated centerpiece).
    ---------------------------------------------------------------------- */
+.contact-footer-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 32px;
+}
+
+.contact-footer-main {
+	min-width: 0;
+}
+
+/* Same viewport-ratio sizing as the earlier nav-logo experiment (260 × 182
+   at a 1440px-wide desktop) — sits on the opposite side of the footer's
+   text content, at the same vertical level. */
+.contact-illustration {
+	flex: none;
+	width: clamp(100px, 18.0556vw, 400px);
+	height: auto;
+}
+
+@media (max-width: 640px) {
+	.contact-footer-row {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 24px;
+	}
+}
+
 .contact-status {
 	font-size: 13px;
 	letter-spacing: 0.06em;
@@ -478,10 +506,16 @@ a {
 	letter-spacing: -0.02em;
 	line-height: 1.05;
 	margin: 0 0 28px;
-	color: var(--color-accent);
 }
 
 .contact-email {
+	/* Button reset — this is a click-to-copy action, not a link. */
+	appearance: none;
+	background: none;
+	border: none;
+	padding: 0;
+	font-family: inherit;
+	cursor: pointer;
 	font-size: 19px;
 	color: var(--color-text);
 	text-decoration: underline;
@@ -490,7 +524,8 @@ a {
 	transition: color 0.15s ease, text-decoration-color 0.15s ease;
 }
 
-.contact-email:hover {
+.contact-email:hover,
+.contact-email.is-copied {
 	color: var(--color-accent);
 	text-decoration-color: currentColor;
 }
@@ -504,8 +539,6 @@ a {
 
 .contact-link {
 	font-size: 13px;
-	letter-spacing: 0.06em;
-	text-transform: uppercase;
 	color: var(--color-text-muted);
 	text-decoration: none;
 	display: inline-flex;
@@ -529,21 +562,6 @@ a {
 	color: var(--color-text-faint);
 	display: flex;
 	justify-content: space-between;
-	align-items: center;
 	flex-wrap: wrap;
 	gap: 8px;
-}
-
-/* Groups "Built with Astro" + the illustration together so the image
-   lands at the very bottom-right corner of the footer. */
-.footer-right {
-	display: inline-flex;
-	align-items: center;
-	gap: 10px;
-}
-
-.footer-illustration {
-	flex: none;
-	height: 34px;
-	width: auto;
 }

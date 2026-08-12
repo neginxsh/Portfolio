@@ -67,28 +67,32 @@ import { projects } from "../data/projects.ts";
 			<hr class="section-divider" />
 
 			<section class="contact-footer" id="contact">
-				<p class="contact-status">Open to new opportunities</p>
-				<h2 class="contact-heading">Let's work together.</h2>
-				<a class="contact-email" href="mailto:neginxsheibani@gmail.com">neginxsheibani@gmail.com</a>
-				<div class="contact-links">
-					<a class="contact-link" href="mailto:neginxsheibani@gmail.com">
-						Email <span aria-hidden="true">↗</span>
-					</a>
-					<a class="contact-link" href="/resume.pdf" target="_blank" rel="noopener noreferrer">
-						Resume <span aria-hidden="true">↗</span>
-					</a>
-					<a class="contact-link" href="https://www.linkedin.com/in/negin-ssheibani" target="_blank" rel="noopener noreferrer">
-						LinkedIn <span aria-hidden="true">↗</span>
-					</a>
+				<div class="contact-footer-row">
+					<div class="contact-footer-main">
+						<p class="contact-status">Open to new opportunities</p>
+						<h2 class="contact-heading">Let's work together.</h2>
+						<button type="button" class="contact-email" data-email="neginxsheibani@gmail.com">
+							neginxsheibani@gmail.com
+						</button>
+						<div class="contact-links">
+							<a class="contact-link" href="mailto:neginxsheibani@gmail.com">
+								Connect <span aria-hidden="true">↗</span>
+							</a>
+							<a class="contact-link" href="https://www.linkedin.com/in/negin-ssheibani" target="_blank" rel="noopener noreferrer">
+								LinkedIn <span aria-hidden="true">↗</span>
+							</a>
+							<a class="contact-link" href="/resume.pdf" target="_blank" rel="noopener noreferrer">
+								Resume <span aria-hidden="true">↗</span>
+							</a>
+						</div>
+					</div>
+					<img class="contact-illustration" src="/about-illustration.svg" alt="" width="260" height="182" />
 				</div>
 			</section>
 
 			<div class="footer">
 				<span>&copy; {new Date().getFullYear()} Negin Sheibani</span>
-				<span class="footer-right">
-					Built with Astro
-					<img class="footer-illustration" src="/about-illustration.svg" alt="" width="48" height="34" />
-				</span>
+				<span>Built with Astro</span>
 			</div>
 		</div>
 	</footer>
@@ -117,6 +121,45 @@ import { projects } from "../data/projects.ts";
 		watch(document.querySelector(".sticky-nav"), "--nav-height");
 		watch(document.querySelector(".hero-fixed"), "--hero-height");
 		watch(document.querySelector(".reveal-footer"), "--footer-height");
+	</script>
+
+	<script>
+		// Click-to-copy email: hover previews "Copy?", click copies to the
+		// clipboard and confirms with "Copied!" for a moment before
+		// reverting — to the hover label if the pointer's still there,
+		// otherwise back to the address itself.
+		const emailButton = document.querySelector<HTMLButtonElement>(".contact-email");
+		if (emailButton) {
+			const address = emailButton.dataset.email ?? emailButton.textContent!.trim();
+			let revertTimer: ReturnType<typeof setTimeout>;
+
+			emailButton.addEventListener("mouseenter", () => {
+				if (emailButton.classList.contains("is-copied")) return;
+				emailButton.textContent = "Copy?";
+			});
+
+			emailButton.addEventListener("mouseleave", () => {
+				if (emailButton.classList.contains("is-copied")) return;
+				emailButton.textContent = address;
+			});
+
+			emailButton.addEventListener("click", async () => {
+				try {
+					await navigator.clipboard.writeText(address);
+				} catch {
+					// Clipboard API unavailable/blocked — still show the
+					// confirmation so the click doesn't feel like a no-op;
+					// worst case they select/copy the address manually.
+				}
+				clearTimeout(revertTimer);
+				emailButton.classList.add("is-copied");
+				emailButton.textContent = "Copied!";
+				revertTimer = setTimeout(() => {
+					emailButton.classList.remove("is-copied");
+					emailButton.textContent = emailButton.matches(":hover") ? "Copy?" : address;
+				}, 1600);
+			});
+		}
 	</script>
 
 	<script>
