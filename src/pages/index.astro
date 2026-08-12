@@ -92,7 +92,11 @@ import { projects } from "../data/projects.ts";
 							</a>
 						</div>
 					</div>
-					<img class="contact-illustration" src="/about-illustration.svg" alt="" width="260" height="180" />
+					<div class="contact-illustration-stack">
+						<img class="illustration-frame" src="/about-illustration.svg" alt="" style="opacity: 1;" />
+						<img class="illustration-frame" src="/about-illustration-mid.svg" alt="" style="opacity: 0;" />
+						<img class="illustration-frame" src="/about-illustration-deep.svg" alt="" style="opacity: 0;" />
+					</div>
 				</div>
 			</section>
 
@@ -127,6 +131,66 @@ import { projects } from "../data/projects.ts";
 		watch(document.querySelector(".sticky-nav"), "--nav-height");
 		watch(document.querySelector(".hero-fixed"), "--hero-height");
 		watch(document.querySelector(".reveal-footer"), "--footer-height");
+	</script>
+
+	<script>
+		// Illustration crossfade, scrubbed by how far into the footer's
+		// reveal you've scrolled (ref: the three states supplied — 13 is
+		// the resting/default frame, 12 and 11 are progressively deeper
+		// ones) — not a one-shot triggered animation, so scrolling back up
+		// smoothly reverses it back to the default frame exactly as it
+		// arrived, at whatever point you stop.
+		//
+		// Progress is derived from scroll position rather than an
+		// IntersectionObserver on the footer itself: .reveal-footer is
+		// `position: fixed`, so it always geometrically intersects the
+		// viewport regardless of whether the opaque scrolling content is
+		// currently covering it — IntersectionObserver has no way to know
+		// it's being covered. Distance from the actual bottom of the page,
+		// measured against the footer's own real height (--footer-height,
+		// kept in sync above), gives the same 0→1 reveal fraction the
+		// cover/spacer mechanic itself uses, with no extra bookkeeping.
+		const frames = document.querySelectorAll<HTMLElement>(".illustration-frame");
+
+		if (frames.length === 3) {
+			const [frame1, frame2, frame3] = frames;
+
+			function footerProgress() {
+				const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+				const footerHeight = parseFloat(
+					getComputedStyle(document.documentElement).getPropertyValue("--footer-height"),
+				);
+				if (!(maxScroll > 0) || !(footerHeight > 0)) return 0;
+				const distanceFromBottom = maxScroll - window.scrollY;
+				return Math.min(1, Math.max(0, 1 - distanceFromBottom / footerHeight));
+			}
+
+			function applyProgress(p: number) {
+				// p 0 → frame1 (13) fully shown; 0.5 → frame2 (12) fully
+				// shown; 1 → frame3 (11) fully shown. Two linear crossfades
+				// back to back, same idea as a two-stop gradient.
+				const seg = p * 2;
+				const o1 = Math.max(0, 1 - seg);
+				const o3 = Math.max(0, seg - 1);
+				const o2 = 1 - o1 - o3;
+				frame1.style.opacity = String(o1);
+				frame2.style.opacity = String(o2);
+				frame3.style.opacity = String(o3);
+			}
+
+			// No rAF throttling — three `opacity` writes plus a bit of
+			// arithmetic is cheap enough to run directly on every scroll
+			// event, and it sidesteps rAF getting silently starved (e.g. a
+			// backgrounded tab never firing it, which would otherwise wedge
+			// this permanently since a stuck `ticking` flag never clears).
+			function onScroll() {
+				applyProgress(footerProgress());
+			}
+
+			window.addEventListener("scroll", onScroll, { passive: true });
+			window.addEventListener("resize", onScroll);
+			onScroll();
+		}
 	</script>
 
 	<script>
