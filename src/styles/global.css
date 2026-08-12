@@ -116,24 +116,33 @@ a {
 	width: 14px;
 	height: 14px;
 	border-radius: 50%;
-	background: #fff;
-	/* Inverts whatever's beneath it, pixel by pixel, instead of sitting on
-	   top as a flat color (ref: jingjinghan.com's cursor) — reads as a
-	   "transparent", adaptive dot that stays visible over both light and
-	   dark content without ever needing to know what's underneath it. */
-	mix-blend-mode: difference;
+	/* Solid accent blue by default — no blend mode. (An earlier version
+	   used mix-blend-mode: difference, which reads as yellow whenever it
+	   crosses anything already in accent blue — 255,255,255 minus
+	   0,33,143 comes out amber — and we don't use yellow anywhere.) */
+	background: var(--color-accent);
 	pointer-events: none;
 	z-index: 9999;
 	opacity: 0;
+	/* Position is set inline every mousemove and deliberately left out of
+	   this transition — animating transform here would make the dot lag
+	   behind the pointer instead of tracking it 1:1. */
 	transform: translate3d(-100px, -100px, 0) translate(-50%, -50%);
-	transition: opacity 0.2s ease, width 0.25s ease, height 0.25s ease;
+	transition: opacity 0.2s ease, width 0.25s ease, height 0.25s ease, background-color 0.15s ease;
 }
 
 .cursor-dot.is-active {
 	opacity: 1;
 }
 
+/* Hovering any text — color effect only, no size change. */
+.cursor-dot.is-text {
+	background: #fff;
+}
+
+/* Hovering a link/button — same color flip as .is-text, plus it grows. */
 .cursor-dot.is-hover {
+	background: #fff;
 	width: 46px;
 	height: 46px;
 }
@@ -144,15 +153,31 @@ a {
 	opacity: 0;
 }
 
-/* Cursor-following label (ref: xhulia.com's email hover) — a small
-   readable pill that tracks the pointer and names what clicking will do
-   ("Copy" → "Copied!"). Kept as its own element rather than text inside
-   .cursor-dot, since text loses all contrast once it's inside a
-   mix-blend-mode: difference box. */
+/* Cursor-following label (ref: xhulia.com's email hover) — a small pill
+   that tracks the pointer and names what clicking will do ("Copy" →
+   "Copied!"). Position (outer element, translate3d) and pop-in scale
+   (inner element) are split across two elements on purpose: they used to
+   share one `transform`, and transitioning that same property for both
+   the constant per-mousemove position update AND the show/hide scale
+   made the label visibly lag and stutter behind the pointer instead of
+   tracking it smoothly. Splitting them means the position snaps
+   instantly (like .cursor-dot does) while only the scale eases. */
 .cursor-label {
 	position: fixed;
 	top: 0;
 	left: 0;
+	pointer-events: none;
+	z-index: 9999;
+	opacity: 0;
+	transform: translate3d(-100px, -100px, 0) translate(-50%, -50%);
+	transition: opacity 0.15s ease;
+}
+
+.cursor-label.is-active {
+	opacity: 1;
+}
+
+.cursor-label-inner {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -165,17 +190,12 @@ a {
 	font-size: 13px;
 	font-weight: 500;
 	white-space: nowrap;
-	pointer-events: none;
-	z-index: 9999;
-	opacity: 0;
-	transform: translate3d(-100px, -100px, 0) translate(-50%, -50%) scale(0.7);
-	transition: opacity 0.2s ease, transform 0.2s ease;
+	transform: scale(0.7);
+	transition: transform 0.2s ease;
 }
 
-/* Position (translate3d) is set inline by the script on every mousemove;
-   this just toggles visibility + the final pop-in scale. */
-.cursor-label.is-active {
-	opacity: 1;
+.cursor-label.is-active .cursor-label-inner {
+	transform: scale(1);
 }
 
 .wrap {

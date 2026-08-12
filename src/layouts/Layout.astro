@@ -39,25 +39,27 @@ const {
 	</head>
 	<body>
 		<!--
-			Custom cursor (ref: jingjinghan.com's mix-blend-mode dot, plus a
-			cursor-following text pill for elements that want to name their
-			action — ref: xhulia.com's email hover). Only shown once the
-			script below confirms a fine pointer AND actually runs — the
-			native cursor is hidden via a class it adds, never by default
-			CSS, so a JS failure can't leave someone with no cursor at all.
+			Custom cursor: a solid accent-blue dot that turns white over any
+			text (color only) or grows white over links/buttons (color +
+			size), plus a cursor-following label pill for elements that want
+			to name their action (ref: xhulia.com's email hover). Only shown
+			once the script below confirms a fine pointer AND actually runs —
+			the native cursor is hidden only via a class it adds, never by
+			default CSS, so a JS failure can't leave someone with no cursor
+			at all.
 		-->
 		<div class="cursor-dot" aria-hidden="true"></div>
-		<div class="cursor-label" aria-hidden="true"></div>
+		<div class="cursor-label" aria-hidden="true"><span class="cursor-label-inner"></span></div>
 		<slot />
 		<script>
 			if (window.matchMedia("(pointer: fine)").matches) {
 				const dot = document.querySelector<HTMLElement>(".cursor-dot");
 				const label = document.querySelector<HTMLElement>(".cursor-label");
-				if (dot && label) {
+				const labelInner = label?.querySelector<HTMLElement>(".cursor-label-inner");
+				if (dot && label && labelInner) {
 					document.documentElement.classList.add("has-custom-cursor");
 
 					let seen = false;
-					let labelActive = false;
 
 					window.addEventListener(
 						"mousemove",
@@ -66,34 +68,47 @@ const {
 								seen = true;
 								dot.classList.add("is-active");
 							}
+							// Position only — no scale here, so this stays a
+							// plain, un-eased transform the dot/label can
+							// track every frame without lag (the label's
+							// pop-in scale lives on .cursor-label-inner
+							// instead, see global.css).
 							const move = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
 							dot.style.transform = move;
-							label.style.transform = `${move} scale(${labelActive ? 1 : 0.7})`;
+							label.style.transform = move;
 						},
 						{ passive: true },
 					);
 					window.addEventListener("mouseleave", () => dot.classList.remove("is-active"));
 
+					// A text element for cursor purposes: it directly holds
+					// text and isn't itself a link/button/label target (those
+					// are checked first and take priority below).
+					const isTextEl = (el: HTMLElement) => el.children.length === 0 && !!el.textContent?.trim();
+
 					document.addEventListener("mouseover", (e) => {
 						const target = e.target as HTMLElement;
 						const labelTarget = target.closest<HTMLElement>("[data-cursor-label]");
 						if (labelTarget) {
-							labelActive = true;
-							label.textContent = labelTarget.dataset.cursorLabel ?? "";
+							labelInner.textContent = labelTarget.dataset.cursorLabel ?? "";
 							label.classList.add("is-active");
 							dot.classList.add("is-label");
 							return;
 						}
-						if (target.closest("a, button")) dot.classList.add("is-hover");
+						if (target.closest("a, button")) {
+							dot.classList.add("is-hover");
+						} else if (isTextEl(target)) {
+							dot.classList.add("is-text");
+						}
 					});
 					document.addEventListener("mouseout", (e) => {
 						const target = e.target as HTMLElement;
 						if (target.closest("[data-cursor-label]")) {
-							labelActive = false;
 							label.classList.remove("is-active");
 							dot.classList.remove("is-label");
 						}
 						if (target.closest("a, button")) dot.classList.remove("is-hover");
+						if (isTextEl(target)) dot.classList.remove("is-text");
 					});
 				}
 			}

@@ -92,7 +92,7 @@ import { projects } from "../data/projects.ts";
 							</a>
 						</div>
 					</div>
-					<img class="contact-illustration" src="/about-illustration.svg" alt="" width="260" height="182" />
+					<img class="contact-illustration" src="/about-illustration.svg" alt="" width="260" height="180" />
 				</div>
 			</section>
 
@@ -141,6 +141,7 @@ import { projects } from "../data/projects.ts";
 		const emailButton = document.querySelector<HTMLButtonElement>(".contact-email");
 		const status = document.querySelector<HTMLElement>(".contact-footer-main .sr-only");
 		const cursorLabel = document.querySelector<HTMLElement>(".cursor-label");
+		const cursorLabelInner = cursorLabel?.querySelector<HTMLElement>(".cursor-label-inner");
 
 		if (emailButton) {
 			const address = emailButton.dataset.email ?? emailButton.textContent!.trim();
@@ -158,16 +159,16 @@ import { projects } from "../data/projects.ts";
 				clearTimeout(revertTimer);
 				emailButton.classList.add("is-copied");
 				emailButton.dataset.cursorLabel = "Copied!";
-				if (cursorLabel && cursorLabel.classList.contains("is-active")) {
-					cursorLabel.textContent = "Copied!";
+				if (cursorLabelInner && cursorLabel?.classList.contains("is-active")) {
+					cursorLabelInner.textContent = "Copied!";
 				}
 				if (status) status.textContent = "Email address copied to clipboard.";
 
 				revertTimer = setTimeout(() => {
 					emailButton.classList.remove("is-copied");
 					emailButton.dataset.cursorLabel = "Copy";
-					if (cursorLabel && cursorLabel.classList.contains("is-active")) {
-						cursorLabel.textContent = "Copy";
+					if (cursorLabelInner && cursorLabel?.classList.contains("is-active")) {
+						cursorLabelInner.textContent = "Copy";
 					}
 				}, 1600);
 			});
