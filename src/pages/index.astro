@@ -43,7 +43,7 @@ import { projects } from "../data/projects.ts";
 
 			<div class="grid">
 				{projects.map((p, i) => (
-					<a class="card" href={`/case-studies/${p.slug}/`} data-index={i} data-cursor-view="View">
+					<a class="card" href={`/case-studies/${p.slug}/`} data-index={i}>
 						<div class="card-cover" style={`background:${p.color}`}>
 							<span class="glyph">{p.title.charAt(p.title.length - 1)}</span>
 						</div>

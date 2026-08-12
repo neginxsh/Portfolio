@@ -39,27 +39,29 @@ const {
 	</head>
 	<body>
 		<!--
-			Custom cursor, matched to jingjinghan.com's actual values: a
-			mix-blend-mode: difference white circle, 16px by default, 44px
-			over ordinary links/buttons, 150px with a fade/scale-in label
-			over "preview" style links (data-cursor-view — our project
-			cards). Suppressed (native cursor shown instead) while hovering
-			.sticky-nav, same as that site does for its own nav. Only shown
-			once the script below confirms a fine pointer AND actually
-			runs — the native cursor is hidden only via a class it adds,
-			never by default CSS, so a JS failure can't leave someone with
-			no cursor at all.
+			Custom cursor: a solid accent-blue dot that never changes color,
+			only size — bigger over links/buttons. What DOES change color is
+			the text/link glyphs directly underneath it, which turn white in
+			a circle matching the dot (see .reveal-text in global.css) — a
+			"spotlight" effect rather than the dot itself flipping color.
+			Applied via one shared selector (REVEAL_SELECTOR below) so the
+			header nav/name and the footer text/links get identical
+			treatment, not special-cased separately. Only shown once the
+			script below confirms a fine pointer AND actually runs — the
+			native cursor is hidden only via a class it adds, never by
+			default CSS, so a JS failure can't leave someone with no cursor
+			at all.
 		-->
-		<div class="cursor-dot" aria-hidden="true"><span class="cursor-label"></span></div>
+		<div class="cursor-dot" aria-hidden="true"></div>
 		<slot />
 		<script>
 			if (window.matchMedia("(pointer: fine)").matches) {
 				const dot = document.querySelector<HTMLElement>(".cursor-dot");
-				const label = dot?.querySelector<HTMLElement>(".cursor-label");
-				if (dot && label) {
+				if (dot) {
 					document.documentElement.classList.add("has-custom-cursor");
 
 					let seen = false;
+					let revealTarget: HTMLElement | null = null;
 
 					window.addEventListener(
 						"mousemove",
@@ -72,41 +74,61 @@ const {
 							// this stays a plain, un-eased value the dot can
 							// track every frame without lag.
 							dot.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
+
+							if (revealTarget) {
+								const rect = revealTarget.getBoundingClientRect();
+								revealTarget.style.setProperty("--reveal-x", `${e.clientX - rect.left}px`);
+								revealTarget.style.setProperty("--reveal-y", `${e.clientY - rect.top}px`);
+							}
 						},
 						{ passive: true },
 					);
 					window.addEventListener("mouseleave", () => dot.classList.remove("is-active"));
 
+					// The site's actual text-bearing elements — deliberately
+					// an explicit list rather than a generic "leaf node"
+					// heuristic, since several of these (e.g. .contact-link)
+					// nest a decorative icon span inside their text, which a
+					// leaf check would incorrectly disqualify. "a" here
+					// covers .nav a and .contact-link identically — same
+					// selector, so no special-casing needed to keep the
+					// header and footer links in sync.
+					const REVEAL_SELECTOR = "h1, h2, p, a, .card-title-row, .footer span";
+
+					function startReveal(el: HTMLElement, isLink: boolean) {
+						revealTarget = el;
+						// Captured before .reveal-text sets color:transparent,
+						// so the gradient's "outside the circle" stop matches
+						// whatever color this element actually renders in
+						// (muted footer text, faint card meta, etc.) without
+						// needing a hand-written override per selector.
+						el.style.setProperty("--reveal-base", getComputedStyle(el).color);
+						el.style.setProperty("--reveal-r", isLink ? "24px" : "8px");
+						el.classList.add("reveal-text");
+					}
+					function endReveal(el: HTMLElement) {
+						el.classList.remove("reveal-text");
+						el.style.removeProperty("--reveal-base");
+						el.style.removeProperty("--reveal-r");
+						el.style.removeProperty("--reveal-x");
+						el.style.removeProperty("--reveal-y");
+						if (revealTarget === el) revealTarget = null;
+					}
+
 					document.addEventListener("mouseover", (e) => {
 						const target = e.target as HTMLElement;
+						const linkTarget = target.closest("a, button");
+						if (linkTarget) dot.classList.add("is-hover");
 
-						const nav = target.closest(".sticky-nav");
-						if (nav) {
-							document.documentElement.classList.add("nav-hovering");
-							nav.classList.add("nav-native-cursor");
-							return;
-						}
-
-						const viewTarget = target.closest<HTMLElement>("[data-cursor-view]");
-						if (viewTarget) {
-							label.textContent = viewTarget.dataset.cursorView ?? "";
-							dot.classList.add("is-view");
-							return;
-						}
-
-						if (target.closest("a, button")) dot.classList.add("is-hover");
+						const revealEl = target.closest<HTMLElement>(REVEAL_SELECTOR);
+						if (revealEl) startReveal(revealEl, !!linkTarget);
 					});
 					document.addEventListener("mouseout", (e) => {
 						const target = e.target as HTMLElement;
-
-						const nav = target.closest(".sticky-nav");
-						if (nav) {
-							document.documentElement.classList.remove("nav-hovering");
-							nav.classList.remove("nav-native-cursor");
-						}
-
-						if (target.closest("[data-cursor-view]")) dot.classList.remove("is-view");
 						if (target.closest("a, button")) dot.classList.remove("is-hover");
+
+						const revealEl = target.closest<HTMLElement>(REVEAL_SELECTOR);
+						if (revealEl) endReveal(revealEl);
 					});
 				}
 			}

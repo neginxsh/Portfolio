@@ -98,26 +98,20 @@ a {
 	border: 0;
 }
 
-/* Custom cursor (ref: jingjinghan.com — matched to its actual values:
-   16px default, a mix-blend-mode: difference white circle, growing to
-   44px over ordinary links/buttons and 150px with a fade/scale-in label
-   over "preview" style links — our project cards). Native cursor is
-   hidden only via .has-custom-cursor, added by the script in
-   Layout.astro once it confirms a fine pointer and actually runs, so a
-   JS failure never leaves the page with no cursor at all. Suppressed
-   again (native cursor shown instead) while hovering .sticky-nav,
-   same as jingjinghan.com does for its own nav. */
+/* Custom cursor — solid accent blue, ALWAYS. The dot itself never
+   changes color, anywhere on the site (header nav/name and footer
+   text/links included) — only its size, bigger over links/buttons.
+   What DOES change color is the text/link glyphs directly under it,
+   which turn white and show through in a circle matching the dot — see
+   .reveal-text below. Native cursor is hidden only via
+   .has-custom-cursor, added by the script in Layout.astro once it
+   confirms a fine pointer and actually runs, so a JS failure never
+   leaves the page with no cursor at all. */
 .has-custom-cursor,
 .has-custom-cursor body,
 .has-custom-cursor a,
 .has-custom-cursor button {
 	cursor: none;
-}
-
-.nav-native-cursor,
-.nav-native-cursor a,
-.nav-native-cursor button {
-	cursor: pointer !important;
 }
 
 .cursor-dot {
@@ -126,65 +120,67 @@ a {
 	top: 0;
 	left: 0;
 	z-index: 9999;
-	justify-content: center;
-	align-items: center;
 	width: 16px;
 	height: 16px;
 	border-radius: 9999px;
-	background: #fff;
-	mix-blend-mode: difference;
+	background: var(--color-accent);
 	pointer-events: none;
 	will-change: transform;
 	opacity: 0;
 	/* Position is set inline every mousemove and deliberately left out of
 	   this transition — animating transform here would make the dot lag
 	   behind the pointer instead of tracking it 1:1. */
-	transition: opacity 0.2s ease, width 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-		height 0.4s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.3s;
+	transition: opacity 0.2s ease, width 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+		height 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .has-custom-cursor .cursor-dot {
-	display: flex;
+	display: block;
 }
 
 .cursor-dot.is-active {
 	opacity: 1;
 }
 
-/* Hidden while hovering the nav — native cursor takes over there instead. */
-.has-custom-cursor.nav-hovering .cursor-dot {
-	opacity: 0;
-}
-
-/* Ordinary links/buttons. */
+/* Links/buttons — bigger, same blue. Applies equally to .nav a and
+   .contact-link (both are just <a> elements matched below), so the
+   header and footer links behave identically by construction. */
 .cursor-dot.is-hover {
 	width: 44px;
 	height: 44px;
 }
 
-/* Project cards — bigger, with the label below fading/scaling in. */
-.cursor-dot.is-view {
-	width: 150px;
-	height: 150px;
-}
-
-.cursor-label {
-	font-family: var(--font-sans);
-	letter-spacing: 0.01em;
-	text-align: center;
-	color: #000;
-	white-space: nowrap;
-	opacity: 0;
-	font-size: 17px;
-	font-weight: 500;
-	line-height: 1.15;
-	transform: scale(0.5);
-	transition: opacity 0.3s, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.cursor-dot.is-view .cursor-label {
-	opacity: 1;
-	transform: scale(1);
+/* Cursor "spotlight" text reveal — the glyphs directly under the
+   pointer turn white, matching the visible blue disc passing over
+   them, without any duplicate text node: a radial-gradient (white
+   inside a circle centered on the pointer, the element's own real text
+   color outside it) is clipped to the text's own glyph shapes via
+   background-clip: text. --reveal-x/--reveal-y are LOCAL to the
+   element (px from its own top-left) and --reveal-r is the circle's
+   radius — both set by the script in Layout.astro on every mousemove
+   while that element is the hover target, matched to the dot's own
+   current size so the reveal lines up with the visible circle.
+   --reveal-base is the element's real resolved color, captured once by
+   the script so this works for headings/links/muted footer text alike
+   with no per-selector overrides. Parked off-element by default so
+   nothing shows until actually hovered. */
+.reveal-text {
+	--reveal-x: -999px;
+	--reveal-y: -999px;
+	--reveal-r: 8px;
+	background-image: radial-gradient(
+		circle var(--reveal-r) at var(--reveal-x) var(--reveal-y),
+		#fff 97%,
+		var(--reveal-base, currentColor) 100%
+	);
+	-webkit-background-clip: text;
+	background-clip: text;
+	/* !important: this is a runtime-toggled state, competing against every
+	   element's own base `color` rule (.about, .card-meta, .contact-status,
+	   etc.) at the same single-class specificity — without it, whichever of
+	   those happens to be declared later in this file would silently win
+	   and cancel the reveal. */
+	color: transparent !important;
 }
 
 .wrap {
@@ -621,20 +617,22 @@ a {
    spinning continuously, rather than a tooltip that follows the cursor
    around the screen. */
 .email-badge-wrap {
-	position: relative;
-	display: inline-block;
+	/* Real flex layout, not absolute positioning — a `left: 100%` badge
+	   sitting outside its parent's box doesn't count as "inside" that
+	   parent for :hover purposes no matter how much padding the parent
+	   carries (the padding just moves the 100% reference point out by
+	   the same amount, so the gap outside it never closes). A normal
+	   flex item is genuinely inside the hoverable box instead. */
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
 }
 
 .email-badge {
-	position: absolute;
-	top: 50%;
-	left: calc(100% + 6px);
+	flex: none;
 	width: 64px;
 	height: 64px;
-	/* Position/scale-in only — the continuous rotation lives on the SVG
-	   child below, so this transform (which changes on hover/copy) never
-	   fights with that separate, always-running animation. */
-	transform: translateY(-50%) scale(0.7);
+	transform: scale(0.7);
 	opacity: 0;
 	pointer-events: none;
 	transition: opacity 0.25s ease, transform 0.25s ease;
@@ -643,7 +641,7 @@ a {
 .email-badge-wrap:hover .email-badge,
 .email-badge-wrap.is-copied .email-badge {
 	opacity: 1;
-	transform: translateY(-50%) scale(1);
+	transform: scale(1);
 }
 
 .email-badge-spin {
