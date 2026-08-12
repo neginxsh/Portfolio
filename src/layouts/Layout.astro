@@ -39,12 +39,15 @@ const {
 	</head>
 	<body>
 		<!--
-			Custom cursor: a solid accent-blue dot that turns white over any
-			text (color only) or grows white over links/buttons (color +
-			size), plus a cursor-following label pill for elements that want
-			to name their action (ref: xhulia.com's email hover). Only shown
-			once the script below confirms a fine pointer AND actually runs —
-			the native cursor is hidden only via a class it adds, never by
+			Custom cursor: a solid accent-blue dot that never changes color,
+			only size — bigger over links/buttons. What DOES change color is
+			the text directly underneath it, which turns white in a circle
+			matching the dot (see .reveal-text in global.css) — a "spotlight"
+			effect rather than the dot itself flipping color. Plus a
+			cursor-following label pill for elements that want to name their
+			action (ref: xhulia.com's email hover). Only shown once the
+			script below confirms a fine pointer AND actually runs — the
+			native cursor is hidden only via a class it adds, never by
 			default CSS, so a JS failure can't leave someone with no cursor
 			at all.
 		-->
@@ -60,6 +63,7 @@ const {
 					document.documentElement.classList.add("has-custom-cursor");
 
 					let seen = false;
+					let revealTarget: HTMLElement | null = null;
 
 					window.addEventListener(
 						"mousemove",
@@ -68,23 +72,51 @@ const {
 								seen = true;
 								dot.classList.add("is-active");
 							}
-							// Position only — no scale here, so this stays a
-							// plain, un-eased transform the dot/label can
-							// track every frame without lag (the label's
-							// pop-in scale lives on .cursor-label-inner
-							// instead, see global.css).
+							// Position only — no scale/other property shares
+							// this transition, so it stays a plain, un-eased
+							// value the dot/label can track every frame
+							// without lag (ditto the reveal circle below,
+							// updated with the same raw, un-eased numbers).
 							const move = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
 							dot.style.transform = move;
 							label.style.transform = move;
+
+							if (revealTarget) {
+								const rect = revealTarget.getBoundingClientRect();
+								revealTarget.style.setProperty("--reveal-x", `${e.clientX - rect.left}px`);
+								revealTarget.style.setProperty("--reveal-y", `${e.clientY - rect.top}px`);
+							}
 						},
 						{ passive: true },
 					);
 					window.addEventListener("mouseleave", () => dot.classList.remove("is-active"));
 
-					// A text element for cursor purposes: it directly holds
-					// text and isn't itself a link/button/label target (those
-					// are checked first and take priority below).
-					const isTextEl = (el: HTMLElement) => el.children.length === 0 && !!el.textContent?.trim();
+					// The site's actual text-bearing elements — deliberately
+					// an explicit list rather than a generic "leaf node"
+					// heuristic, since several of these (e.g. .contact-link)
+					// nest a decorative icon span inside their text, which a
+					// leaf check would incorrectly disqualify.
+					const REVEAL_SELECTOR = "h1, h2, p, a, .card-title-row, .footer span";
+
+					function startReveal(el: HTMLElement, isLink: boolean) {
+						revealTarget = el;
+						// Captured before .reveal-text sets color:transparent,
+						// so the gradient's "outside the circle" stop matches
+						// whatever color this element actually renders in
+						// (muted footer text, faint card meta, etc.) without
+						// needing a hand-written override per selector.
+						el.style.setProperty("--reveal-base", getComputedStyle(el).color);
+						el.style.setProperty("--reveal-r", isLink ? "23px" : "7px");
+						el.classList.add("reveal-text");
+					}
+					function endReveal(el: HTMLElement) {
+						el.classList.remove("reveal-text");
+						el.style.removeProperty("--reveal-base");
+						el.style.removeProperty("--reveal-r");
+						el.style.removeProperty("--reveal-x");
+						el.style.removeProperty("--reveal-y");
+						if (revealTarget === el) revealTarget = null;
+					}
 
 					document.addEventListener("mouseover", (e) => {
 						const target = e.target as HTMLElement;
@@ -95,11 +127,11 @@ const {
 							dot.classList.add("is-label");
 							return;
 						}
-						if (target.closest("a, button")) {
-							dot.classList.add("is-hover");
-						} else if (isTextEl(target)) {
-							dot.classList.add("is-text");
-						}
+						const linkTarget = target.closest("a, button");
+						if (linkTarget) dot.classList.add("is-hover");
+
+						const revealEl = target.closest<HTMLElement>(REVEAL_SELECTOR);
+						if (revealEl) startReveal(revealEl, !!linkTarget);
 					});
 					document.addEventListener("mouseout", (e) => {
 						const target = e.target as HTMLElement;
@@ -108,7 +140,9 @@ const {
 							dot.classList.remove("is-label");
 						}
 						if (target.closest("a, button")) dot.classList.remove("is-hover");
-						if (isTextEl(target)) dot.classList.remove("is-text");
+
+						const revealEl = target.closest<HTMLElement>(REVEAL_SELECTOR);
+						if (revealEl) endReveal(revealEl);
 					});
 				}
 			}

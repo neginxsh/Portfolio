@@ -116,10 +116,9 @@ a {
 	width: 14px;
 	height: 14px;
 	border-radius: 50%;
-	/* Solid accent blue by default — no blend mode. (An earlier version
-	   used mix-blend-mode: difference, which reads as yellow whenever it
-	   crosses anything already in accent blue — 255,255,255 minus
-	   0,33,143 comes out amber — and we don't use yellow anywhere.) */
+	/* Solid accent blue, always — the dot itself never changes color, only
+	   size (bigger over links/buttons). What changes color instead is
+	   whatever text is directly underneath it — see .reveal-text below. */
 	background: var(--color-accent);
 	pointer-events: none;
 	z-index: 9999;
@@ -128,21 +127,15 @@ a {
 	   this transition — animating transform here would make the dot lag
 	   behind the pointer instead of tracking it 1:1. */
 	transform: translate3d(-100px, -100px, 0) translate(-50%, -50%);
-	transition: opacity 0.2s ease, width 0.25s ease, height 0.25s ease, background-color 0.15s ease;
+	transition: opacity 0.2s ease, width 0.25s ease, height 0.25s ease;
 }
 
 .cursor-dot.is-active {
 	opacity: 1;
 }
 
-/* Hovering any text — color effect only, no size change. */
-.cursor-dot.is-text {
-	background: #fff;
-}
-
-/* Hovering a link/button — same color flip as .is-text, plus it grows. */
+/* Hovering a link/button — bigger, same blue. */
 .cursor-dot.is-hover {
-	background: #fff;
 	width: 46px;
 	height: 46px;
 }
@@ -151,6 +144,38 @@ a {
    don't overlap. */
 .cursor-dot.is-label {
 	opacity: 0;
+}
+
+/* Cursor "spotlight" text reveal — the glyphs directly under the pointer
+   turn white, matching the visible blue disc passing over them, without
+   any duplicate text node: a radial-gradient (white inside a circle
+   centered on the pointer, the element's own real text color outside
+   it) is clipped to the text's own glyph shapes via background-clip:
+   text. --reveal-x/--reveal-y are LOCAL to the element (px from its own
+   top-left) and --reveal-r is the circle's radius — both set by the
+   script in Layout.astro on every mousemove while that element is the
+   hover target, matched to the dot's own current size so the reveal
+   lines up with the visible circle. --reveal-base is the element's real
+   resolved color, captured once by the script so this works for
+   headings/links/muted footer text alike with no per-selector overrides.
+   Parked off-element by default so nothing shows until actually hovered. */
+.reveal-text {
+	--reveal-x: -999px;
+	--reveal-y: -999px;
+	--reveal-r: 7px;
+	background-image: radial-gradient(
+		circle var(--reveal-r) at var(--reveal-x) var(--reveal-y),
+		#fff 97%,
+		var(--reveal-base, currentColor) 100%
+	);
+	-webkit-background-clip: text;
+	background-clip: text;
+	/* !important: this is a runtime-toggled state, competing against every
+	   element's own base `color` rule (.about, .card-meta, .contact-status,
+	   etc.) at the same single-class specificity — without it, whichever of
+	   those happens to be declared later in this file would silently win
+	   and cancel the reveal. */
+	color: transparent !important;
 }
 
 /* Cursor-following label (ref: xhulia.com's email hover) — a small pill
@@ -358,15 +383,12 @@ a {
 .nav a {
 	color: var(--color-text-muted);
 	text-decoration: none;
-	transition: color 0.15s ease;
 }
 
-.nav a:hover {
-	color: var(--color-accent);
-	text-decoration: underline;
-	text-decoration-color: currentColor;
-	text-underline-offset: 3px;
-}
+/* No :hover color rule here on purpose — the cursor's spotlight reveal
+   (.reveal-text, applied by the script in Layout.astro) is the only hover
+   feedback now. A :hover { color } rule at this specificity would win
+   over .reveal-text's color: transparent and silently cancel the effect. */
 
 /* About paragraph — placed on the right, roughly under the nav, matching
    where joannani.com sits its "Creating interactions..." statement. */
@@ -624,12 +646,9 @@ a {
 	display: inline-flex;
 	align-items: center;
 	gap: 5px;
-	transition: color 0.15s ease;
 }
 
-.contact-link:hover {
-	color: var(--color-accent);
-}
+/* No :hover color rule here either — same reasoning as .nav a above. */
 
 /* -------------------------------------------------------------------------
    Footer
