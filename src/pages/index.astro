@@ -21,7 +21,6 @@ import { projects } from "../data/projects.ts";
 	<div class="sticky-nav">
 		<div class="header-top">
 			<div class="name-row">
-				<img class="site-logo" src="/about-illustration.svg" alt="" width="260" height="182" />
 				<h1>Negin Sheibani</h1>
 			</div>
 			<nav class="nav" aria-label="Primary">
@@ -86,7 +85,10 @@ import { projects } from "../data/projects.ts";
 
 			<div class="footer">
 				<span>&copy; {new Date().getFullYear()} Negin Sheibani</span>
-				<span>Built with Astro</span>
+				<span class="footer-right">
+					Built with Astro
+					<img class="footer-illustration" src="/about-illustration.svg" alt="" width="48" height="34" />
+				</span>
 			</div>
 		</div>
 	</footer>
