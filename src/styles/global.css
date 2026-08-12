@@ -18,11 +18,11 @@
 	--color-pill-bg: #efeeec;
 	--color-pill-bg-active: #191919;
 	--color-pill-text-active: #ffffff;
-	/* Single accent, matched to the illustration's navy (#03268e) so every
-	   blue on the site is the same blue. Used for interactive states (link
-	   hover, focus rings, card hover) and the footer heading. */
-	--color-accent: #03268e;
-	--color-accent-soft: rgba(3, 38, 142, 0.22);
+	/* Single accent, matched to forn.dk's blue (#00218F) — the illustration
+	   itself (public/about-illustration.svg) is recolored to this same hex
+	   too, so every blue on the site is identical. */
+	--color-accent: #00218f;
+	--color-accent-soft: rgba(0, 33, 143, 0.22);
 
 	--radius-sm: 6px;
 	--radius-md: 10px;
@@ -83,6 +83,21 @@ a {
 	background: var(--color-accent-soft);
 }
 
+/* Visually hidden but still readable by screen readers — used for the
+   "Email address copied" status announcement, since touch/keyboard users
+   never see the cursor label that shows that confirmation visually. */
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
 /* Custom cursor dot (ref: jingjinghan.com) — native cursor is hidden only
    via this class, added by the script in Layout.astro once it confirms a
    fine pointer and actually runs, so a JS failure never leaves the page
@@ -101,12 +116,17 @@ a {
 	width: 14px;
 	height: 14px;
 	border-radius: 50%;
-	background: var(--color-accent);
+	background: #fff;
+	/* Inverts whatever's beneath it, pixel by pixel, instead of sitting on
+	   top as a flat color (ref: jingjinghan.com's cursor) — reads as a
+	   "transparent", adaptive dot that stays visible over both light and
+	   dark content without ever needing to know what's underneath it. */
+	mix-blend-mode: difference;
 	pointer-events: none;
 	z-index: 9999;
 	opacity: 0;
-	transform: translate3d(-100px, -100px, 0);
-	transition: opacity 0.2s ease, width 0.18s ease, height 0.18s ease;
+	transform: translate3d(-100px, -100px, 0) translate(-50%, -50%);
+	transition: opacity 0.2s ease, width 0.25s ease, height 0.25s ease;
 }
 
 .cursor-dot.is-active {
@@ -114,8 +134,48 @@ a {
 }
 
 .cursor-dot.is-hover {
-	width: 30px;
-	height: 30px;
+	width: 46px;
+	height: 46px;
+}
+
+/* Hidden while the cursor-label pill (below) is showing instead — the two
+   don't overlap. */
+.cursor-dot.is-label {
+	opacity: 0;
+}
+
+/* Cursor-following label (ref: xhulia.com's email hover) — a small
+   readable pill that tracks the pointer and names what clicking will do
+   ("Copy" → "Copied!"). Kept as its own element rather than text inside
+   .cursor-dot, since text loses all contrast once it's inside a
+   mix-blend-mode: difference box. */
+.cursor-label {
+	position: fixed;
+	top: 0;
+	left: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0 18px;
+	height: 40px;
+	border-radius: 20px;
+	background: var(--color-accent);
+	color: #fff;
+	font-family: var(--font-sans);
+	font-size: 13px;
+	font-weight: 500;
+	white-space: nowrap;
+	pointer-events: none;
+	z-index: 9999;
+	opacity: 0;
+	transform: translate3d(-100px, -100px, 0) translate(-50%, -50%) scale(0.7);
+	transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* Position (translate3d) is set inline by the script on every mousemove;
+   this just toggles visibility + the final pop-in scale. */
+.cursor-label.is-active {
+	opacity: 1;
 }
 
 .wrap {

@@ -71,9 +71,15 @@ import { projects } from "../data/projects.ts";
 					<div class="contact-footer-main">
 						<p class="contact-status">Open to new opportunities</p>
 						<h2 class="contact-heading">Let's work together.</h2>
-						<button type="button" class="contact-email" data-email="neginxsheibani@gmail.com">
+						<button
+							type="button"
+							class="contact-email"
+							data-email="neginxsheibani@gmail.com"
+							data-cursor-label="Copy"
+						>
 							neginxsheibani@gmail.com
 						</button>
+						<span class="sr-only" role="status" aria-live="polite"></span>
 						<div class="contact-links">
 							<a class="contact-link" href="mailto:neginxsheibani@gmail.com">
 								Connect <span aria-hidden="true">↗</span>
@@ -124,24 +130,21 @@ import { projects } from "../data/projects.ts";
 	</script>
 
 	<script>
-		// Click-to-copy email: hover previews "Copy?", click copies to the
-		// clipboard and confirms with "Copied!" for a moment before
-		// reverting — to the hover label if the pointer's still there,
-		// otherwise back to the address itself.
+		// Click-to-copy email (ref: xhulia.com — a cursor-following "Copy"
+		// label rather than swapping the visible address text itself; the
+		// label is a shared element owned by Layout.astro's cursor script,
+		// driven here via the button's data-cursor-label attribute). The
+		// address on the button never changes; on click it's copied to the
+		// clipboard, the cursor label flips to "Copied!" for a moment, and
+		// an aria-live region announces it for keyboard/touch/screen-reader
+		// users who never see the cursor label at all.
 		const emailButton = document.querySelector<HTMLButtonElement>(".contact-email");
+		const status = document.querySelector<HTMLElement>(".contact-footer-main .sr-only");
+		const cursorLabel = document.querySelector<HTMLElement>(".cursor-label");
+
 		if (emailButton) {
 			const address = emailButton.dataset.email ?? emailButton.textContent!.trim();
 			let revertTimer: ReturnType<typeof setTimeout>;
-
-			emailButton.addEventListener("mouseenter", () => {
-				if (emailButton.classList.contains("is-copied")) return;
-				emailButton.textContent = "Copy?";
-			});
-
-			emailButton.addEventListener("mouseleave", () => {
-				if (emailButton.classList.contains("is-copied")) return;
-				emailButton.textContent = address;
-			});
 
 			emailButton.addEventListener("click", async () => {
 				try {
@@ -151,12 +154,21 @@ import { projects } from "../data/projects.ts";
 					// confirmation so the click doesn't feel like a no-op;
 					// worst case they select/copy the address manually.
 				}
+
 				clearTimeout(revertTimer);
 				emailButton.classList.add("is-copied");
-				emailButton.textContent = "Copied!";
+				emailButton.dataset.cursorLabel = "Copied!";
+				if (cursorLabel && cursorLabel.classList.contains("is-active")) {
+					cursorLabel.textContent = "Copied!";
+				}
+				if (status) status.textContent = "Email address copied to clipboard.";
+
 				revertTimer = setTimeout(() => {
 					emailButton.classList.remove("is-copied");
-					emailButton.textContent = emailButton.matches(":hover") ? "Copy?" : address;
+					emailButton.dataset.cursorLabel = "Copy";
+					if (cursorLabel && cursorLabel.classList.contains("is-active")) {
+						cursorLabel.textContent = "Copy";
+					}
 				}, 1600);
 			});
 		}

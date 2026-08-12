@@ -39,21 +39,26 @@ const {
 	</head>
 	<body>
 		<!--
-			Custom cursor dot (ref: jingjinghan.com), in the site accent color
-			instead of that site's mix-blend-mode inversion trick. Only shown
-			once the script below confirms a fine pointer AND actually runs —
-			the native cursor is hidden via a class it adds, never by default
+			Custom cursor (ref: jingjinghan.com's mix-blend-mode dot, plus a
+			cursor-following text pill for elements that want to name their
+			action — ref: xhulia.com's email hover). Only shown once the
+			script below confirms a fine pointer AND actually runs — the
+			native cursor is hidden via a class it adds, never by default
 			CSS, so a JS failure can't leave someone with no cursor at all.
 		-->
 		<div class="cursor-dot" aria-hidden="true"></div>
+		<div class="cursor-label" aria-hidden="true"></div>
 		<slot />
 		<script>
 			if (window.matchMedia("(pointer: fine)").matches) {
 				const dot = document.querySelector<HTMLElement>(".cursor-dot");
-				if (dot) {
+				const label = document.querySelector<HTMLElement>(".cursor-label");
+				if (dot && label) {
 					document.documentElement.classList.add("has-custom-cursor");
 
 					let seen = false;
+					let labelActive = false;
+
 					window.addEventListener(
 						"mousemove",
 						(e) => {
@@ -61,16 +66,34 @@ const {
 								seen = true;
 								dot.classList.add("is-active");
 							}
-							dot.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
+							const move = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
+							dot.style.transform = move;
+							label.style.transform = `${move} scale(${labelActive ? 1 : 0.7})`;
 						},
 						{ passive: true },
 					);
 					window.addEventListener("mouseleave", () => dot.classList.remove("is-active"));
+
 					document.addEventListener("mouseover", (e) => {
-						if ((e.target as HTMLElement).closest("a, button")) dot.classList.add("is-hover");
+						const target = e.target as HTMLElement;
+						const labelTarget = target.closest<HTMLElement>("[data-cursor-label]");
+						if (labelTarget) {
+							labelActive = true;
+							label.textContent = labelTarget.dataset.cursorLabel ?? "";
+							label.classList.add("is-active");
+							dot.classList.add("is-label");
+							return;
+						}
+						if (target.closest("a, button")) dot.classList.add("is-hover");
 					});
 					document.addEventListener("mouseout", (e) => {
-						if ((e.target as HTMLElement).closest("a, button")) dot.classList.remove("is-hover");
+						const target = e.target as HTMLElement;
+						if (target.closest("[data-cursor-label]")) {
+							labelActive = false;
+							label.classList.remove("is-active");
+							dot.classList.remove("is-label");
+						}
+						if (target.closest("a, button")) dot.classList.remove("is-hover");
 					});
 				}
 			}
