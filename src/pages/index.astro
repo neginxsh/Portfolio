@@ -1,6 +1,5 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import FishLogo from "../components/FishLogo.astro";
 import { projects } from "../data/projects.ts";
 ---
 
@@ -22,7 +21,7 @@ import { projects } from "../data/projects.ts";
 	<div class="sticky-nav">
 		<div class="header-top">
 			<div class="name-row">
-				<FishLogo class="fish-logo" />
+				<img class="site-logo" src="/about-illustration.svg" alt="" width="34" height="24" />
 				<h1>Negin Sheibani</h1>
 			</div>
 			<nav class="nav" aria-label="Primary">
@@ -33,7 +32,6 @@ import { projects } from "../data/projects.ts";
 
 	<div class="hero-fixed">
 		<div class="about-row">
-			<img class="about-illustration" src="/about-illustration.svg" alt="" width="80" height="56" />
 			<p class="about">About paragraph goes here — a few lines on what you do and how you think about it.</p>
 		</div>
 	</div>
