@@ -71,32 +71,19 @@ import { projects } from "../data/projects.ts";
 					<div class="contact-footer-main">
 						<p class="contact-status">Open to new opportunities</p>
 						<h2 class="contact-heading">Let's work together.</h2>
-						<span class="email-badge-wrap">
+						<span class="email-tooltip-wrap">
 							<button type="button" class="contact-email" data-email="neginxsheibani@gmail.com">
 								neginxsheibani@gmail.com
 							</button>
 							<!--
-								Rotating circular "copy" badge (ref: xhulia.com's
-								email hover — a small looping-text badge on a
-								curved SVG path, positioned next to the link, not
-								following the cursor). Two <textPath> variants
-								(default / copied) sit stacked in the same spot;
-								the script below toggles which is visible on
-								click instead of mutating text content, so the
-								looping duplicate phrase stays intact.
+								Hover tooltip (ref: xhulia.com's email hover) —
+								default / copied messages stacked in the same
+								spot, toggled by the script below instead of
+								mutating text content directly.
 							-->
-							<span class="email-badge" aria-hidden="true">
-								<svg class="email-badge-spin" viewBox="0 0 100 100">
-									<defs>
-										<path id="email-badge-circle" d="M 50,50 m -35,0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0" />
-									</defs>
-									<text class="email-badge-text email-badge-text-default">
-										<textPath href="#email-badge-circle">Copy email · Copy email · </textPath>
-									</text>
-									<text class="email-badge-text email-badge-text-copied">
-										<textPath href="#email-badge-circle">Copied! · Copied! · </textPath>
-									</text>
-								</svg>
+							<span class="email-tooltip" role="tooltip" aria-hidden="true">
+								<span class="email-tooltip-default">Click to copy</span>
+								<span class="email-tooltip-copied">Copied to clipboard</span>
 							</span>
 						</span>
 						<span class="sr-only" role="status" aria-live="polite"></span>
@@ -215,18 +202,26 @@ import { projects } from "../data/projects.ts";
 
 	<script>
 		// Click-to-copy email. The address on the button never changes; on
-		// click it's copied to the clipboard, the rotating badge next to it
-		// (see .email-badge-wrap) swaps from its default loop to a
-		// "Copied!" loop for a moment, and an aria-live region announces it
-		// for keyboard/touch/screen-reader users who never see a hover
-		// badge at all (it's a :hover-driven affordance, mouse-only).
+		// click it's copied to the clipboard, the tooltip above it (see
+		// .email-tooltip-wrap) swaps from its default message to a
+		// confirmation for a moment (no celebration effect, by request —
+		// just the message swap), and an aria-live region announces it for
+		// keyboard/touch/screen-reader users who never see a hover tooltip
+		// at all (it's a :hover-driven affordance, mouse-only). Also grows
+		// the custom cursor while hovering, same as any other link —
+		// separate from the .reveal-text system (see Layout.astro), since
+		// this element gets the tooltip instead of the white-glyph reveal.
 		const emailButton = document.querySelector<HTMLButtonElement>(".contact-email");
-		const emailBadgeWrap = document.querySelector<HTMLElement>(".email-badge-wrap");
+		const emailTooltipWrap = document.querySelector<HTMLElement>(".email-tooltip-wrap");
 		const status = document.querySelector<HTMLElement>(".contact-footer-main .sr-only");
+		const cursorDot = document.querySelector<HTMLElement>(".cursor-dot");
 
 		if (emailButton) {
 			const address = emailButton.dataset.email ?? emailButton.textContent!.trim();
 			let revertTimer: ReturnType<typeof setTimeout>;
+
+			emailTooltipWrap?.addEventListener("mouseenter", () => cursorDot?.classList.add("is-hover"));
+			emailTooltipWrap?.addEventListener("mouseleave", () => cursorDot?.classList.remove("is-hover"));
 
 			emailButton.addEventListener("click", async () => {
 				try {
@@ -239,12 +234,12 @@ import { projects } from "../data/projects.ts";
 
 				clearTimeout(revertTimer);
 				emailButton.classList.add("is-copied");
-				emailBadgeWrap?.classList.add("is-copied");
+				emailTooltipWrap?.classList.add("is-copied");
 				if (status) status.textContent = "Email address copied to clipboard.";
 
 				revertTimer = setTimeout(() => {
 					emailButton.classList.remove("is-copied");
-					emailBadgeWrap?.classList.remove("is-copied");
+					emailTooltipWrap?.classList.remove("is-copied");
 				}, 1600);
 			});
 		}

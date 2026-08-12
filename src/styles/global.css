@@ -142,29 +142,42 @@ a {
 	opacity: 1;
 }
 
-/* Links/buttons — bigger, same blue. Applies equally to .nav a and
-   .contact-link (both are just <a> elements matched below), so the
-   header and footer links behave identically by construction. */
+/* The email address (see .email-tooltip-wrap below) isn't part of the
+   text-reveal system — it has its own dedicated hover affordance (the
+   tooltip) instead — but it should still grow the dot like any other
+   link. */
 .cursor-dot.is-hover {
 	width: 44px;
 	height: 44px;
 }
 
+/* Hidden while hovering reveal-text content (below) — that element's
+   own ::before takes over as the visible circle instead. This fixed,
+   z-index: 9999 dot always paints on top of EVERYTHING on the page by
+   design (so it's visible over images, cards, blank space, anything) —
+   which is exactly the problem for text: it would bury the
+   white-revealed glyphs under solid blue rather than letting them show
+   through it. A per-element ::before can paint behind that element's
+   own text instead, which a page-global fixed element never can. */
+.cursor-dot.is-revealing {
+	opacity: 0;
+}
+
 /* Cursor "spotlight" text reveal — the glyphs directly under the
-   pointer turn white, matching the visible blue disc passing over
-   them, without any duplicate text node: a radial-gradient (white
-   inside a circle centered on the pointer, the element's own real text
-   color outside it) is clipped to the text's own glyph shapes via
-   background-clip: text. --reveal-x/--reveal-y are LOCAL to the
-   element (px from its own top-left) and --reveal-r is the circle's
-   radius — both set by the script in Layout.astro on every mousemove
-   while that element is the hover target, matched to the dot's own
-   current size so the reveal lines up with the visible circle.
-   --reveal-base is the element's real resolved color, captured once by
-   the script so this works for headings/links/muted footer text alike
-   with no per-selector overrides. Parked off-element by default so
-   nothing shows until actually hovered. */
+   pointer turn white, and the visible blue circle passing over them is
+   painted BEHIND those glyphs (this element's own ::before, not the
+   global .cursor-dot — see above for why), so the white letters read
+   as if the circle is showing through them rather than the circle
+   hiding them. --reveal-x/--reveal-y are LOCAL to the element (px from
+   its own top-left) and --reveal-r is the circle's radius — both set
+   by the script in Layout.astro on every mousemove while that element
+   is the hover target. --reveal-base is the element's real resolved
+   color, captured once by the script so this works for
+   headings/links/muted footer text alike with no per-selector
+   overrides. Parked off-element by default so nothing shows until
+   actually hovered. */
 .reveal-text {
+	position: relative;
 	--reveal-x: -999px;
 	--reveal-y: -999px;
 	--reveal-r: 8px;
@@ -181,6 +194,26 @@ a {
 	   those happens to be declared later in this file would silently win
 	   and cancel the reveal. */
 	color: transparent !important;
+}
+
+.reveal-text::before {
+	content: "";
+	position: absolute;
+	/* Behind this element's own (normal-flow) text within ITS OWN local
+	   stacking context — unrelated to and unconstrained by .cursor-dot's
+	   z-index, since this never has to compete against it directly. */
+	z-index: -1;
+	left: calc(var(--reveal-x) - var(--reveal-r));
+	top: calc(var(--reveal-y) - var(--reveal-r));
+	width: calc(var(--reveal-r) * 2);
+	height: calc(var(--reveal-r) * 2);
+	border-radius: 50%;
+	background: var(--color-accent);
+	pointer-events: none;
+	/* Only size transitions (text hover -> link hover growth) — position
+	   tracks the mouse every frame via --reveal-x/y and must stay
+	   un-eased, same reasoning as .cursor-dot above. */
+	transition: width 0.3s cubic-bezier(0.22, 1, 0.36, 1), height 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .wrap {
@@ -612,80 +645,66 @@ a {
 	text-decoration-color: currentColor;
 }
 
-/* Rotating "copy" badge (ref: xhulia.com's email hover) — a small
-   looping-text ring on a curved SVG path, positioned beside the link and
-   spinning continuously, rather than a tooltip that follows the cursor
-   around the screen. */
-.email-badge-wrap {
-	/* Real flex layout, not absolute positioning — a `left: 100%` badge
-	   sitting outside its parent's box doesn't count as "inside" that
-	   parent for :hover purposes no matter how much padding the parent
-	   carries (the padding just moves the 100% reference point out by
-	   the same amount, so the gap outside it never closes). A normal
-	   flex item is genuinely inside the hoverable box instead. */
-	display: inline-flex;
-	align-items: center;
-	gap: 8px;
+/* Email hover tooltip (ref: xhulia.com's email hover) — a small label
+   above the address inviting a click, swapping to a confirmation after
+   one (no confetti/celebration, by request — just the message swap). */
+.email-tooltip-wrap {
+	position: relative;
+	display: inline-block;
 }
 
-.email-badge {
-	flex: none;
-	width: 64px;
-	height: 64px;
-	transform: scale(0.7);
+.email-tooltip {
+	position: absolute;
+	bottom: calc(100% + 10px);
+	left: 50%;
+	transform: translateX(-50%) translateY(4px);
+	background: var(--color-accent);
+	color: #fff;
+	font-size: 13px;
+	font-weight: 500;
+	white-space: nowrap;
+	padding: 7px 14px;
+	border-radius: 8px;
 	opacity: 0;
 	pointer-events: none;
-	transition: opacity 0.25s ease, transform 0.25s ease;
+	transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
-.email-badge-wrap:hover .email-badge,
-.email-badge-wrap.is-copied .email-badge {
+.email-tooltip::after {
+	content: "";
+	position: absolute;
+	top: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+	border: 5px solid transparent;
+	border-top-color: var(--color-accent);
+}
+
+.email-tooltip-wrap:hover .email-tooltip,
+.email-tooltip-wrap.is-copied .email-tooltip {
 	opacity: 1;
-	transform: scale(1);
+	transform: translateX(-50%) translateY(0);
 }
 
-.email-badge-spin {
-	display: block;
-	width: 100%;
-	height: 100%;
-	animation: email-badge-spin 6s linear infinite;
+/* Two messages (default / copied) stacked in the same spot — toggled by
+   swapping which is visible, so the tooltip's own size can transition
+   smoothly between them instead of the text just jump-cutting. */
+.email-tooltip-copied {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	opacity: 0;
+	transition: opacity 0.2s ease;
 }
 
-@keyframes email-badge-spin {
-	to {
-		transform: rotate(360deg);
-	}
-}
-
-.email-badge-text {
-	font-size: 8.5px;
-	font-weight: 500;
-	letter-spacing: 0.08em;
-	text-transform: uppercase;
-	fill: var(--color-accent);
-}
-
-/* Two loops (default / copied) stacked in the same spot — toggled by
-   swapping which is visible rather than mutating either's text, so the
-   seamless repeating phrase is never rebuilt mid-animation. */
-.email-badge-text-copied {
+.email-tooltip-wrap.is-copied .email-tooltip-default {
 	opacity: 0;
 }
 
-.email-badge-wrap.is-copied .email-badge-text-default {
-	opacity: 0;
-}
-
-.email-badge-wrap.is-copied .email-badge-text-copied {
+.email-tooltip-wrap.is-copied .email-tooltip-copied {
 	opacity: 1;
-}
-
-@media (max-width: 640px) {
-	/* Hover-only affordance on a device that can't hover — hide it rather
-	   than have it appear stuck open after a tap. */
-	.email-badge {
-		display: none;
-	}
 }
 
 .contact-links {

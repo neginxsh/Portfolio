@@ -39,11 +39,13 @@ const {
 	</head>
 	<body>
 		<!--
-			Custom cursor: a solid accent-blue dot that never changes color,
-			only size — bigger over links/buttons. What DOES change color is
-			the text/link glyphs directly underneath it, which turn white in
-			a circle matching the dot (see .reveal-text in global.css) — a
-			"spotlight" effect rather than the dot itself flipping color.
+			Custom cursor: a solid accent-blue dot that never changes color.
+			Over plain text/links, it hides itself and hands off to that
+			element's own local circle instead (.reveal-text::before in
+			global.css) — same size/color, but painted BEHIND that
+			element's text so the white-revealed glyphs show through it,
+			which the fixed, always-on-top dot can't do for itself (see the
+			comment on .cursor-dot.is-revealing in global.css for why).
 			Applied via one shared selector (REVEAL_SELECTOR below) so the
 			header nav/name and the footer text/links get identical
 			treatment, not special-cased separately. Only shown once the
@@ -92,11 +94,16 @@ const {
 					// leaf check would incorrectly disqualify. "a" here
 					// covers .nav a and .contact-link identically — same
 					// selector, so no special-casing needed to keep the
-					// header and footer links in sync.
+					// header and footer links in sync. Every hoverable
+					// element on the site is matched by this one selector
+					// (email button aside — it has its own separate hover
+					// affordance, see index.astro), so it's also the only
+					// thing driving the dot's size/visibility now.
 					const REVEAL_SELECTOR = "h1, h2, p, a, .card-title-row, .footer span";
 
 					function startReveal(el: HTMLElement, isLink: boolean) {
 						revealTarget = el;
+						dot.classList.add("is-revealing");
 						// Captured before .reveal-text sets color:transparent,
 						// so the gradient's "outside the circle" stop matches
 						// whatever color this element actually renders in
@@ -113,20 +120,16 @@ const {
 						el.style.removeProperty("--reveal-x");
 						el.style.removeProperty("--reveal-y");
 						if (revealTarget === el) revealTarget = null;
+						dot.classList.remove("is-revealing");
 					}
 
 					document.addEventListener("mouseover", (e) => {
 						const target = e.target as HTMLElement;
-						const linkTarget = target.closest("a, button");
-						if (linkTarget) dot.classList.add("is-hover");
-
 						const revealEl = target.closest<HTMLElement>(REVEAL_SELECTOR);
-						if (revealEl) startReveal(revealEl, !!linkTarget);
+						if (revealEl) startReveal(revealEl, !!target.closest("a, button"));
 					});
 					document.addEventListener("mouseout", (e) => {
 						const target = e.target as HTMLElement;
-						if (target.closest("a, button")) dot.classList.remove("is-hover");
-
 						const revealEl = target.closest<HTMLElement>(REVEAL_SELECTOR);
 						if (revealEl) endReveal(revealEl);
 					});
